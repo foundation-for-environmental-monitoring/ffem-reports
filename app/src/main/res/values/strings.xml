@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ffem Reports</string>
+    <string name="just_a_moment">Just a moment…</string>
+    <string name="print">Print</string>
+    <string name="save">Save</string>
+    <string name="navigate_up">Navigate Up</string>
+
+    <!--Alerts-->
+    <string name="cannotStartTest">Cannot start test</string>
+    <string name="errorTestNotAvailable">Requested test is not available</string>
+    <string name="pleaseContactSupport">Please contact technical support</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="info">Info</string>
+    <string name="notFound">Not found</string>
+    <string name="go_to_external_app">Launch ffem Collect</string>
+    <string name="close">Close</string>
+
+    <!--About Screen-->
+    <string name="copyrightMessage">Copyright © ffem</string>
+    <string name="legalInformation">Legal Information</string>
+    <string name="about">About</string>
+
+    <!--Software notices-->
+    <string name="apache_software"><a href="https://source.android.com/setup/licenses">Android&#160;Open&#160;Source&#160;Project</a>&#160;&#160;&#8226;&#160;&#160;<a href="https://github.com/joel-costigliola/assertj-core">AssertJ</a>&#160;&#160;&#8226;&#160;&#32;<a href="https://github.com/google/gson">Gson</a>&#160;&#160;&#8226;&#160;&#160;<a href="https://github.com/JakeWharton/timber">Timber</a>&#160;&#160;&#8226;&#160;&#160;</string>
+    <string name="mit_software"><a href="http://robolectric.org/">Robolectric</a></string>
+    <string name="cca_software"><a href="https://design.google.com/icons/">Material Icons</a></string>
+    <string name="eclipse_software"><a href="https://github.com/junit-team/junit4">Junit 4</a></string>
+    <string name="software_incorporates_material">This software incorporates material from the projects listed below</string>
+    <string name="apache_license_2">Apache License 2.0</string>
+    <string name="mit_license">MIT License</string>
+    <string name="cca_license">CC BY 4.0 International</string>
+    <string name="software_notices">Software Notices</string>
+    <string name="eclipse_public_license">Eclipse Public License 1.0</string>
+    <string name="version">Version</string>
+    <string name="intro_msg_1">ffem Reports generates reports for ffem Collect survey app.</string>
+    <string name="intro_msg_2">To generate reports go to ffem Collect and select a report question.</string>
+    <string name="state">State</string>
+    <string name="district">District</string>
+    <string name="crop">Crop</string>
+    <string name="all_values_in_kg_ha">(All values in kg/ha)</string>
+    <string name="fertilizer_combination_1">Fertilizer Combination 1</string>
+    <string name="fertilizer_combination_2">Fertilizer Combination 2</string>
+    <string name="test_results">Test Results</string>
+    <string name="nitrogen">Nitrogen</string>
+    <string name="phosphorus">Phosphorus</string>
+    <string name="potassium">Potassium</string>
+
+</resources>

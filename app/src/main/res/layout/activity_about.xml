@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="10dp"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-20dp"
+                android:alpha="0.8"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:text="@string/app_name"
+                android:textAllCaps="false"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                tools:ignore="SpUsage" />
+
+            <TextView
+                android:id="@+id/textVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:padding="10dp"
+                android:textSize="14sp"
+                android:textStyle="normal"
+                tools:text="Version 1.0" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="10dp"
+                android:contentDescription="@null"
+                android:minWidth="80dp"
+                android:minHeight="80dp"
+                android:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:text="@string/copyrightMessage"
+                android:textSize="15sp"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/textLinkSoftwareNotices"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:onClick="onSoftwareNoticesClick"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/legalInformation"
+                android:textColor="@color/accent"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+    </LinearLayout>
+</layout>

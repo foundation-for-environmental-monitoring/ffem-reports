@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BaseActivity">
+        <attr name="primaryButtonStyle" format="reference" />
+        <attr name="primaryButtonColor" format="color" />
+        <attr name="textColorPrimary" format="color" />
+        <attr name="linkTextColor" format="color" />
+        <attr name="dialogDestructiveButton" format="reference" />
+        <attr name="toolbarHeight" format="dimension" />
+        <attr name="toolbarMargin" format="dimension" />
+    </declare-styleable>
+</resources>

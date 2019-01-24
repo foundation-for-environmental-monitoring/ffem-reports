@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="dialogDestructiveButton">@style/AppTheme.Dialog.Destructive</item>
+        <item name="toolbarHeight">@dimen/toolbar_height</item>
+        <item name="toolbarMargin">@dimen/toolbar_margin</item>
+    </style>
+
+    <style name="AppTheme.Dialog" parent="Theme.AppCompat.Light.Dialog" />
+
+    <style name="AppTheme.Dialog.Destructive">
+        <item name="android:buttonBarPositiveButtonStyle">@style/DestructiveButton</item>
+    </style>
+
+    <style name="DestructiveButton" parent="android:Widget.DeviceDefault.Button.Borderless">
+        <item name="android:textColor">@color/destructive</item>
+    </style>
+
+</resources>
