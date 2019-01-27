@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.databinding.DataBindingUtil;
@@ -38,6 +40,8 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+        setTitle(R.string.app_name);
     }
 
     public void onOkClicked(View view) {
@@ -72,7 +76,14 @@ public class MainActivity extends BaseActivity {
         }, delay);
     }
 
-    public void onInfoClicked(View view) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    public void onInfoClick(MenuItem item) {
         final Intent intent = new Intent(getBaseContext(), AboutActivity.class);
         startActivity(intent);
     }
