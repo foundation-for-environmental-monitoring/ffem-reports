@@ -44,6 +44,14 @@ public class MainActivity extends BaseActivity {
         setTitle(R.string.app_name);
     }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+    }
+
     public void onOkClicked(View view) {
         Intent intent = getPackageManager()
                 .getLaunchIntentForPackage(EXTERNAL_APP_PACKAGE_NAME);
