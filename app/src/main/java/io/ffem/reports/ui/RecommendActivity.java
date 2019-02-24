@@ -66,7 +66,8 @@ public class RecommendActivity extends BaseActivity {
 
     private static final String MESSAGE_TWO_LINE_FORMAT = "%s%n%n%s";
 
-    private static final String DATE_FORMAT = "dd MMM yyyy HH:mm";
+    private static final String DATE_TIME_FORMAT = "dd MMM yyyy HH:mm";
+    private static final String DATE_FORMAT = "dd MMM yyyy";
     private static final String url = "https://soilhealth.dac.gov.in/calculator/calculator";
 
     private final Activity activity = this;
@@ -206,9 +207,18 @@ public class RecommendActivity extends BaseActivity {
             return;
         }
 
-        recommendationInfo.nitrogenResult = getStringExtra("Available Nitrogen", "0");
-        recommendationInfo.phosphorusResult = getStringExtra("Available Phosphorous", "0");
-        recommendationInfo.potassiumResult = getStringExtra("Available Potassium", "0");
+        recommendationInfo.nitrogenResult = getStringExtra("Available Nitrogen", "");
+        recommendationInfo.phosphorusResult = getStringExtra("Available Phosphorous", "");
+        recommendationInfo.potassiumResult = getStringExtra("Available Potassium", "");
+
+        if (recommendationInfo.nitrogenResult.isEmpty() || recommendationInfo.phosphorusResult.isEmpty() ||
+                recommendationInfo.potassiumResult.isEmpty()) {
+            Toast.makeText(this,
+                    "All tests have to be completed before requesting a recommendation",
+                    Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         final String js = "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
                 "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
@@ -317,6 +327,8 @@ public class RecommendActivity extends BaseActivity {
     }
 
     private void preparePrintDocument() {
+        date = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
+        printTemplate = printTemplate.replace("#DateTime#", date);
         date = new SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
         printTemplate = printTemplate.replace("#Date#", date);
         printTemplate = printTemplate.replace("#FarmerName#", recommendationInfo.farmerName);
