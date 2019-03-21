@@ -22,7 +22,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
-        android:id="@+id/actionINfo"
+        android:id="@+id/actionInfo"
         android:icon="@drawable/ic_action_name"
         android:onClick="onInfoClick"
         android:title="@string/info"

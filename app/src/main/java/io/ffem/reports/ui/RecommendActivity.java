@@ -50,11 +50,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.annotation.RequiresApi;
-import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProviders;
 import io.ffem.reports.R;
+import io.ffem.reports.RecommendationFragment;
+import io.ffem.reports.WaterReportFragment;
 import io.ffem.reports.common.SensorConstants;
-import io.ffem.reports.databinding.ActivityRecommendBinding;
 import io.ffem.reports.model.RecommendationInfo;
 import io.ffem.reports.model.Result;
 import io.ffem.reports.model.TestInfo;
@@ -77,11 +79,14 @@ public class RecommendActivity extends BaseActivity {
     private final WaterTestInfo waterTestInfo = new WaterTestInfo();
 
     private TestInfo testInfo;
-    private ActivityRecommendBinding b;
     private String printTemplate;
     private String date;
 
     private String uuid;
+    private RecommendationFragment recommendationFragment;
+    private FragmentManager fragmentManager;
+
+    private WaterReportFragment waterReportFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +94,7 @@ public class RecommendActivity extends BaseActivity {
         setContentView(R.layout.activity_recommend);
         setTitle("Fertilizer Recommendation");
 
-        b = DataBindingUtil.setContentView(this, R.layout.activity_recommend);
+        fragmentManager = getSupportFragmentManager();
 
         getTestSelectedByExternalApp(getIntent());
 
@@ -98,28 +103,42 @@ public class RecommendActivity extends BaseActivity {
 //            finish();
 //        }
 
+        switch (uuid) {
+            case "ff51c68c-faec-49e9-87b4-0880684be446":
+                waterReportFragment = WaterReportFragment.newInstance("", "");
+                fragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, waterReportFragment,
+                                WaterReportFragment.class.getSimpleName()).commit();
+                printTemplate = AssetsManager.getInstance(this)
+                        .loadJsonFromAsset("templates/water_test_template.html");
+                break;
+            default:
+                recommendationFragment = RecommendationFragment.newInstance("", "");
+                fragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, recommendationFragment,
+                                RecommendationFragment.class.getSimpleName()).commit();
+                printTemplate = AssetsManager.getInstance(this)
+                        .loadJsonFromAsset("templates/recommendation_template.html");
+                getRecommendation();
+        }
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
 
         switch (uuid) {
             case "ff51c68c-faec-49e9-87b4-0880684be446":
-                printTemplate = AssetsManager.getInstance(this)
-                        .loadJsonFromAsset("templates/water_test_template.html");
                 getWaterReport();
                 prepareWaterTestPrintDocument();
                 break;
             default:
-                printTemplate = AssetsManager.getInstance(this)
-                        .loadJsonFromAsset("templates/recommendation_template.html");
                 getRecommendation();
         }
 
     }
 
     private void getWaterReport() {
-        ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage(getString(R.string.just_a_moment));
-        pd.setCancelable(false);
-        pd.show();
-
         waterTestInfo.testerName = getStringExtra("Tester name");
         waterTestInfo.phoneNumber = getStringExtra("Phone number");
         waterTestInfo.lake = getStringExtra("Lake");
@@ -147,6 +166,8 @@ public class RecommendActivity extends BaseActivity {
                     Toast.LENGTH_LONG).show();
 //            finish();
         }
+
+        waterReportFragment.displayResult(waterTestInfo);
 
     }
 
@@ -210,30 +231,12 @@ public class RecommendActivity extends BaseActivity {
             }
         }
 
-//        printTemplate = printTemplate.replace("#Nitrate#", waterTestInfo.nitrateResult);
-//        printTemplate = printTemplate.replace("#Phosphate#", waterTestInfo.phosphateResult);
-//        printTemplate = printTemplate.replace("#pH#", waterTestInfo.pHResult);
-//        printTemplate = printTemplate.replace("#DissolvedOxygen#", waterTestInfo.dissolvedOxygenResult);
+        printTemplate = printTemplate.replace("#Nitrate#", waterTestInfo.nitrateResult);
+        printTemplate = printTemplate.replace("#Phosphate#", waterTestInfo.phosphateResult);
+        printTemplate = printTemplate.replace("#pH#", waterTestInfo.pHResult);
+        printTemplate = printTemplate.replace("#DissolvedOxygen#", waterTestInfo.dissolvedOxygenResult);
 
         printTemplate = printTemplate.replaceAll("#.*?#", "");
-
-        WebView printWebView = new WebView(this);
-        printWebView.setWebViewClient(new WebViewClient() {
-
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return false;
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                createWebPrintJob(view);
-            }
-        });
-
-        printWebView.loadDataWithBaseURL(null, printTemplate,
-                "text/HTML", "UTF-8", null);
-
     }
 
     /**
@@ -420,7 +423,7 @@ public class RecommendActivity extends BaseActivity {
 
         recommendationInfo.values = Arrays.copyOfRange(values, 3, values.length);
 
-        b.setInfo(recommendationInfo);
+        recommendationFragment.displayResult(recommendationInfo);
 
         setResult(Activity.RESULT_OK, resultIntent);
     }
@@ -481,6 +484,7 @@ public class RecommendActivity extends BaseActivity {
         return getStringExtra(key, "");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String getStringExtra(String key, String defaultValue) {
         String value = getIntent().getStringExtra(key);
         if (value == null) {

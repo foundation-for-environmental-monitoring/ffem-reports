@@ -47,4 +47,7 @@
     <string name="phosphorus">Phosphorus</string>
     <string name="potassium">Potassium</string>
 
+    <string name="lake">Lake</string>
+    <string name="location">Location</string>
+
 </resources>

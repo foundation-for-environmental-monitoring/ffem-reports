@@ -71,7 +71,7 @@ public class MainActivityTest {
     @Test
     public void mainActivityTest() {
         ViewInteraction appCompatImageButton = onView(
-                allOf(withId(R.id.button_info), withContentDescription("Info"),
+                allOf(withId(R.id.actionInfo), withContentDescription("Info"),
                         childAtPosition(
                                 allOf(withId(R.id.layout),
                                         childAtPosition(
