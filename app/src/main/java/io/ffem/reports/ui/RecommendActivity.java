@@ -58,6 +58,7 @@ import io.ffem.reports.databinding.ActivityRecommendBinding;
 import io.ffem.reports.model.RecommendationInfo;
 import io.ffem.reports.model.Result;
 import io.ffem.reports.model.TestInfo;
+import io.ffem.reports.model.WaterTestInfo;
 import io.ffem.reports.util.AlertUtil;
 import io.ffem.reports.util.AssetsManager;
 import io.ffem.reports.viewmodel.TestListViewModel;
@@ -72,10 +73,15 @@ public class RecommendActivity extends BaseActivity {
 
     private final Activity activity = this;
     private final RecommendationInfo recommendationInfo = new RecommendationInfo();
+
+    private final WaterTestInfo waterTestInfo = new WaterTestInfo();
+
     private TestInfo testInfo;
     private ActivityRecommendBinding b;
     private String printTemplate;
     private String date;
+
+    private String uuid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,9 +91,6 @@ public class RecommendActivity extends BaseActivity {
 
         b = DataBindingUtil.setContentView(this, R.layout.activity_recommend);
 
-        printTemplate = AssetsManager.getInstance(this)
-                .loadJsonFromAsset("templates/recommendation_template.html");
-
         getTestSelectedByExternalApp(getIntent());
 
 //        if (testInfo.getSubtype() == API) {
@@ -95,7 +98,56 @@ public class RecommendActivity extends BaseActivity {
 //            finish();
 //        }
 
-        getRecommendation();
+
+        switch (uuid) {
+            case "ff51c68c-faec-49e9-87b4-0880684be446":
+                printTemplate = AssetsManager.getInstance(this)
+                        .loadJsonFromAsset("templates/water_test_template.html");
+                getWaterReport();
+                prepareWaterTestPrintDocument();
+                break;
+            default:
+                printTemplate = AssetsManager.getInstance(this)
+                        .loadJsonFromAsset("templates/recommendation_template.html");
+                getRecommendation();
+        }
+
+    }
+
+    private void getWaterReport() {
+        ProgressDialog pd = new ProgressDialog(this);
+        pd.setMessage(getString(R.string.just_a_moment));
+        pd.setCancelable(false);
+        pd.show();
+
+        waterTestInfo.testerName = getStringExtra("Tester name");
+        waterTestInfo.phoneNumber = getStringExtra("Phone number");
+        waterTestInfo.lake = getStringExtra("Lake");
+        waterTestInfo.location = getStringExtra("Location");
+        waterTestInfo.date = getStringExtra("Date");
+        waterTestInfo.time = getStringExtra("Time");
+
+        if (waterTestInfo.testerName.isEmpty() || waterTestInfo.lake.isEmpty()) {
+            Toast.makeText(this,
+                    "All details should be filled for generating a test report.",
+                    Toast.LENGTH_LONG).show();
+            //finish();
+            return;
+        }
+
+        waterTestInfo.nitrateResult = getStringExtra("Nitrate", "");
+        waterTestInfo.phosphateResult = getStringExtra("Phosphate", "");
+        waterTestInfo.pHResult = getStringExtra("pH", "");
+        waterTestInfo.dissolvedOxygenResult = getStringExtra("Dissolved Oxygen", "");
+
+        if (waterTestInfo.nitrateResult.isEmpty() || waterTestInfo.phosphateResult.isEmpty() ||
+                waterTestInfo.pHResult.isEmpty() || waterTestInfo.dissolvedOxygenResult.isEmpty()) {
+            Toast.makeText(this,
+                    "All tests have to be completed for generating the test report",
+                    Toast.LENGTH_LONG).show();
+//            finish();
+        }
+
     }
 
     @Override
@@ -109,7 +161,7 @@ public class RecommendActivity extends BaseActivity {
 
     private void getTestSelectedByExternalApp(Intent intent) {
 
-        String uuid = intent.getStringExtra(SensorConstants.TEST_ID);
+        uuid = intent.getStringExtra(SensorConstants.TEST_ID);
         if (uuid != null) {
             final TestListViewModel viewModel =
                     ViewModelProviders.of(this).get(TestListViewModel.class);
@@ -135,6 +187,53 @@ public class RecommendActivity extends BaseActivity {
             setTitle(R.string.notFound);
             alertTestTypeNotSupported();
         }
+    }
+
+    private void prepareWaterTestPrintDocument() {
+        date = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
+        printTemplate = printTemplate.replace("#DateTime#", date);
+        date = new SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
+        printTemplate = printTemplate.replace("#Date#", date);
+        printTemplate = printTemplate.replace("#TesterName#", waterTestInfo.testerName);
+        printTemplate = printTemplate.replace("#PhoneNumber#", waterTestInfo.phoneNumber);
+        printTemplate = printTemplate.replace("#Lake#", waterTestInfo.lake);
+        printTemplate = printTemplate.replace("#Location#", waterTestInfo.location);
+        printTemplate = printTemplate.replace("#Date#", waterTestInfo.date);
+        printTemplate = printTemplate.replace("#Time#", waterTestInfo.time);
+
+        if (waterTestInfo.geoLocation != null && !waterTestInfo.geoLocation.isEmpty()) {
+            String[] geoValues = waterTestInfo.geoLocation.split(" ");
+            for (int i = 0; i < geoValues.length; i++) {
+                // Also show unit (m) for last two values
+                printTemplate = printTemplate.replace("#Geo" + i + "#",
+                        i > 1 ? geoValues[i] + "m" : geoValues[i]);
+            }
+        }
+
+//        printTemplate = printTemplate.replace("#Nitrate#", waterTestInfo.nitrateResult);
+//        printTemplate = printTemplate.replace("#Phosphate#", waterTestInfo.phosphateResult);
+//        printTemplate = printTemplate.replace("#pH#", waterTestInfo.pHResult);
+//        printTemplate = printTemplate.replace("#DissolvedOxygen#", waterTestInfo.dissolvedOxygenResult);
+
+        printTemplate = printTemplate.replaceAll("#.*?#", "");
+
+        WebView printWebView = new WebView(this);
+        printWebView.setWebViewClient(new WebViewClient() {
+
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return false;
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                createWebPrintJob(view);
+            }
+        });
+
+        printWebView.loadDataWithBaseURL(null, printTemplate,
+                "text/HTML", "UTF-8", null);
+
     }
 
     /**

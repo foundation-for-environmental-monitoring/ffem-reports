@@ -57,6 +57,31 @@
           "name": "Comb2Value3"
         }
       ]
+    },
+    {
+      "name": "Water Test Report",
+      "type": "water",
+      "subtype": "template",
+      "uuid": "ff51c68c-faec-49e9-87b4-0880684be446",
+      "imageScale": "centerCrop",
+      "results": [
+        {
+          "id": 1,
+          "name": "Nitrate"
+        },
+        {
+          "id": 2,
+          "name": "Phosphate"
+        },
+        {
+          "id": 3,
+          "name": "pH"
+        },
+        {
+          "id": 4,
+          "name": "DissolvedOxygen"
+        }
+      ]
     }
   ]
 }
