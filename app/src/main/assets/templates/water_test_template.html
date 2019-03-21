@@ -1,0 +1,154 @@
+<!--
+  ~ Copyright (C) ffem (Foundation for Environmental Monitoring)
+  ~
+  ~ This file is part of ffem reports
+  ~
+  ~ ffem Reports is free software: you can redistribute it and/or modify it
+  ~ under the terms of the GNU General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License,
+  ~ or (at your option) any later version.
+  ~
+  ~ ffem Reports is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<body style="margin:0;font-family:Calibri,'Trebuchet MS',sans-serif;font-size:14px;color:#000;">
+<style>
+    table{width:100%}
+    td {padding-bottom:10px}
+    .valueCell {text-align:right}
+
+
+
+
+</style>
+<div style="margin:0 auto;max-width:1000px;background:#fff">
+    <div style="padding:30px 0 20px;text-align:center;border-bottom:4px solid #777">
+        <div style="font-size:30px;">Water Test Report</div>
+        <div style="font-size:16px;">#DateTime#</div>
+    </div>
+    <table style="border-bottom:1px solid #777">
+        <tr>
+            <td style="width:40%;vertical-align:top;border-right:1px solid #000">
+                <div style="padding:15px 20px;border-bottom:1px solid #777">
+                    <table>
+                        <tr>
+                            <td style="width:90%">Tester Name</td>
+                            <td class="valueCell">#TesterName#</td>
+                        </tr>
+                        <tr>
+                            <td>Phone Number</td>
+                            <td class="valueCell">#PhoneNumber#</td>
+                        </tr>
+                        <tr>
+                            <td>Lake</td>
+                            <td class="valueCell">#Lake#</td>
+                        </tr>
+                        <tr>
+                            <td style="width:90%">Location</td>
+                            <td class="valueCell">#Location#</td>
+                        </tr>
+                        <tr>
+                            <td>Date</td>
+                            <td class="valueCell">#Date#</td>
+                        </tr>
+                        <tr>
+                            <td>Time</td>
+                            <td class="valueCell">#Time#</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="padding:15px 20px">
+                    <table>
+                        <tr>
+                            <td style="width:90%;font-weight:bold">Geolocation</td>
+                            <td class="valueCell" style="font-weight:bold"></td>
+                        </tr>
+                        <tr>
+                            <td>Longitude</td>
+                            <td class="valueCell">#Geo0#</td>
+                        </tr>
+                        <tr>
+                            <td>Latitude</td>
+                            <td class="valueCell">#Geo1#</td>
+                        </tr>
+                        <tr>
+                            <td>Altitude</td>
+                            <td class="valueCell">#Geo2#</td>
+                        </tr>
+                        <tr>
+                            <td>Accuracy</td>
+                            <td class="valueCell">#Geo3#</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td style="vertical-align:top;">
+                <div style="padding:15px 20px;border-bottom:1px solid #777">
+                    <table>
+                        <tr>
+                            <td style="width:58%;font-weight:bold">Test Results</td>
+                            <td style="width:22%;font-weight:bold;text-align:center">Level</td>
+                            <td style="width:20%;font-weight:bold;text-align:right">Analysis</td>
+                        </tr>
+                        <tr>
+                            <td>Nitrate</td>
+                            <td class="valueCell">#Nitrate#</td>
+                            <td class="valueCell">#Nitrate_A#</td>
+                        </tr>
+                        <tr>
+                            <td>Phosphate</td>
+                            <td class="valueCell">#Phosphate#</td>
+                            <td class="valueCell">#Phosphate_A#</td>
+                        </tr>
+                        <tr>
+                            <td>pH</td>
+                            <td class="valueCell">#pH#</td>
+                            <td class="valueCell">#pH_A#</td>
+                        </tr>
+                        <tr>
+                            <td>Dissolved Oxygen</td>
+                            <td class="valueCell">#DissolvedOxygen#</td>
+                            <td class="valueCell">#DissolvedOxygen_A#</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="padding:15px 20px">
+                    <table>
+                        <tr>
+                            <td style="width:80%;font-weight:bold">Safe Levels</td>
+                        </tr>
+                        <tr>
+                            <td>Nitrate</td>
+                            <td class="valueCell">1 - 45 mg/l</td>
+                        </tr>
+                        <tr>
+                            <td>Phosphate</td>
+                            <td class="valueCell">0.05 - 5 mg/l</td>
+                        </tr>
+                        <tr>
+                            <td>pH</td>
+                            <td class="valueCell">6 - 8.5 mg/l</td>
+                        </tr>
+                        <tr>
+                            <td>Dissolved Oxygen</td>
+                            <td class="valueCell">2 - 3 mg/l</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div style="color: #494949;padding:20px">
+        Generated by ffem reports. Water quality data was collected using the ffem water testing
+        kit. Recommendations and safe limits provided by United Way in conjunction with
+        [placeholder]
+    </div>
+</div>
+<br/><br/><br/>
+</body>
