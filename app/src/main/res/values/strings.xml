@@ -49,5 +49,9 @@
 
     <string name="lake">Lake</string>
     <string name="location">Location</string>
+    <string name="dissolvedOxygen">Dissolved Oxygen</string>
+    <string name="nitrate">Nitrate</string>
+    <string name="phosphate">Phosphate</string>
+    <string name="pH">pH</string>
 
 </resources>

@@ -145,7 +145,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:clickable="false"
-                        android:columnCount="2"
+                        android:columnCount="3"
                         android:focusable="false"
                         android:orientation="horizontal"
                         android:weightSum="1">
@@ -153,22 +153,33 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".70"
+                            android:layout_weight=".57"
                             android:padding="8dp"
-                            android:text="@string/nitrogen"
+                            android:text="@string/nitrate"
                             android:textSize="17sp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".30"
+                            android:layout_weight=".25"
                             android:gravity="end"
                             android:padding="8dp"
                             android:paddingTop="5dp"
                             android:paddingBottom="5dp"
                             android:text="@{info.nitrateResult}"
+                            android:textAlignment="textEnd"
                             android:textSize="17sp" />
 
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".18"
+                            android:gravity="end"
+                            android:padding="8dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="@{info.nitrateUnit}"
+                            android:textSize="17sp" />
                     </TableRow>
 
                     <TableRow
@@ -176,7 +187,7 @@
                         android:layout_height="wrap_content"
                         android:background="#F7F7F7"
                         android:clickable="false"
-                        android:columnCount="2"
+                        android:columnCount="3"
                         android:focusable="false"
                         android:orientation="horizontal"
                         android:weightSum="1">
@@ -184,27 +195,37 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".7"
+                            android:layout_weight=".57"
                             android:padding="8dp"
-                            android:text="@string/phosphorus"
+                            android:text="@string/phosphate"
                             android:textSize="17sp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".3"
+                            android:layout_weight=".25"
                             android:gravity="end"
                             android:padding="8dp"
                             android:text="@{info.phosphateResult}"
                             android:textSize="17sp" />
 
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".18"
+                            android:gravity="end"
+                            android:padding="8dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="@{info.phosphateUnit}"
+                            android:textSize="17sp" />
                     </TableRow>
 
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="false"
-                        android:columnCount="2"
+                        android:columnCount="3"
                         android:focusable="false"
                         android:orientation="horizontal"
                         android:weightSum="1">
@@ -212,18 +233,67 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".7"
+                            android:layout_weight=".57"
                             android:padding="8dp"
-                            android:text="@string/potassium"
+                            android:text="@string/pH"
                             android:textSize="17sp" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight=".3"
+                            android:layout_weight=".25"
                             android:gravity="end"
                             android:padding="8dp"
                             android:text="@{info.pHResult}"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".18"
+                            android:gravity="end"
+                            android:padding="8dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="@{info.pHUnit}"
+                            android:textSize="17sp" />
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:columnCount="3"
+                        android:focusable="false"
+                        android:orientation="horizontal"
+                        android:weightSum="1">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".57"
+                            android:padding="8dp"
+                            android:text="@string/dissolvedOxygen"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".25"
+                            android:gravity="end"
+                            android:padding="8dp"
+                            android:text="@{info.dissolvedOxygenResult}"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".18"
+                            android:gravity="end"
+                            android:padding="8dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="@{info.dissolvedOxygenUnit}"
                             android:textSize="17sp" />
                     </TableRow>
                 </TableLayout>

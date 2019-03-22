@@ -92,7 +92,7 @@ public class RecommendActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recommend);
-        setTitle("Fertilizer Recommendation");
+
 
         fragmentManager = getSupportFragmentManager();
 
@@ -105,6 +105,7 @@ public class RecommendActivity extends BaseActivity {
 
         switch (uuid) {
             case "ff51c68c-faec-49e9-87b4-0880684be446":
+                setTitle("Water Test Report");
                 waterReportFragment = WaterReportFragment.newInstance("", "");
                 fragmentManager.beginTransaction()
                         .add(R.id.fragment_container, waterReportFragment,
@@ -113,6 +114,7 @@ public class RecommendActivity extends BaseActivity {
                         .loadJsonFromAsset("templates/water_test_template.html");
                 break;
             default:
+                setTitle("Fertilizer Recommendation");
                 recommendationFragment = RecommendationFragment.newInstance("", "");
                 fragmentManager.beginTransaction()
                         .add(R.id.fragment_container, recommendationFragment,
@@ -129,8 +131,9 @@ public class RecommendActivity extends BaseActivity {
 
         switch (uuid) {
             case "ff51c68c-faec-49e9-87b4-0880684be446":
-                getWaterReport();
-                prepareWaterTestPrintDocument();
+                if (getWaterReport()) {
+                    prepareWaterTestPrintDocument();
+                }
                 break;
             default:
                 getRecommendation();
@@ -138,36 +141,42 @@ public class RecommendActivity extends BaseActivity {
 
     }
 
-    private void getWaterReport() {
+    private boolean getWaterReport() {
         waterTestInfo.testerName = getStringExtra("Tester name");
         waterTestInfo.phoneNumber = getStringExtra("Phone number");
         waterTestInfo.lake = getStringExtra("Lake");
         waterTestInfo.location = getStringExtra("Location");
-        waterTestInfo.date = getStringExtra("Date");
+        waterTestInfo.date = getStringExtra("Date and time");
         waterTestInfo.time = getStringExtra("Time");
 
         if (waterTestInfo.testerName.isEmpty() || waterTestInfo.lake.isEmpty()) {
             Toast.makeText(this,
                     "All details should be filled for generating a test report.",
                     Toast.LENGTH_LONG).show();
-            //finish();
-            return;
+            finish();
+            return false;
         }
 
         waterTestInfo.nitrateResult = getStringExtra("Nitrate", "");
+        waterTestInfo.nitrateUnit = testInfo.getResults().get(0).getUnit();
         waterTestInfo.phosphateResult = getStringExtra("Phosphate", "");
+        waterTestInfo.phosphateUnit = testInfo.getResults().get(1).getUnit();
         waterTestInfo.pHResult = getStringExtra("pH", "");
+        waterTestInfo.pHUnit = testInfo.getResults().get(2).getUnit();
         waterTestInfo.dissolvedOxygenResult = getStringExtra("Dissolved Oxygen", "");
+        waterTestInfo.dissolvedOxygenUnit = testInfo.getResults().get(3).getUnit();
 
         if (waterTestInfo.nitrateResult.isEmpty() || waterTestInfo.phosphateResult.isEmpty() ||
                 waterTestInfo.pHResult.isEmpty() || waterTestInfo.dissolvedOxygenResult.isEmpty()) {
             Toast.makeText(this,
                     "All tests have to be completed for generating the test report",
                     Toast.LENGTH_LONG).show();
-//            finish();
+            finish();
         }
 
         waterReportFragment.displayResult(waterTestInfo);
+
+        return true;
 
     }
 
@@ -214,7 +223,8 @@ public class RecommendActivity extends BaseActivity {
         date = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
         printTemplate = printTemplate.replace("#DateTime#", date);
         date = new SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
-        printTemplate = printTemplate.replace("#Date#", date);
+//        printTemplate = printTemplate.replace("#Date#", date);
+
         printTemplate = printTemplate.replace("#TesterName#", waterTestInfo.testerName);
         printTemplate = printTemplate.replace("#PhoneNumber#", waterTestInfo.phoneNumber);
         printTemplate = printTemplate.replace("#Lake#", waterTestInfo.lake);
@@ -232,9 +242,20 @@ public class RecommendActivity extends BaseActivity {
         }
 
         printTemplate = printTemplate.replace("#Nitrate#", waterTestInfo.nitrateResult);
+        printTemplate = printTemplate.replace("#Nitrate_Unit#", waterTestInfo.nitrateUnit);
+        printTemplate = printTemplate.replace("#Nitrate_A#", "High");
+
         printTemplate = printTemplate.replace("#Phosphate#", waterTestInfo.phosphateResult);
+        printTemplate = printTemplate.replace("#Phosphate_Unit#", waterTestInfo.phosphateUnit);
+        printTemplate = printTemplate.replace("#Phosphate_A#", "Normal");
+
         printTemplate = printTemplate.replace("#pH#", waterTestInfo.pHResult);
+        printTemplate = printTemplate.replace("#pH_Unit#", waterTestInfo.pHUnit);
+        printTemplate = printTemplate.replace("#pH_A#", "Normal");
+
         printTemplate = printTemplate.replace("#DissolvedOxygen#", waterTestInfo.dissolvedOxygenResult);
+        printTemplate = printTemplate.replace("#DissolvedOxygen_Unit#", waterTestInfo.dissolvedOxygenUnit);
+        printTemplate = printTemplate.replace("#DissolvedOxygen_A#", "Low");
 
         printTemplate = printTemplate.replaceAll("#.*?#", "");
     }
@@ -472,7 +493,7 @@ public class RecommendActivity extends BaseActivity {
             }
         });
 
-        printWebView.loadDataWithBaseURL(null, printTemplate,
+        printWebView.loadDataWithBaseURL("file:///android_asset/images/", printTemplate,
                 "text/HTML", "UTF-8", null);
     }
 

@@ -28,8 +28,12 @@ public class WaterTestInfo {
     public String time;
     public String geoLocation;
     public String nitrateResult;
+    public String nitrateUnit;
     public String phosphateResult;
+    public String phosphateUnit;
     public String pHResult;
+    public String pHUnit = "";
     public String dissolvedOxygenResult;
+    public String dissolvedOxygenUnit;
     public String[] values;
 }

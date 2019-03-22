@@ -48,6 +48,10 @@ public class Result implements Parcelable {
         return name;
     }
 
+    public String getUnit() {
+        return unit;
+    }
+
     @Override
     public int describeContents() {
         return 0;

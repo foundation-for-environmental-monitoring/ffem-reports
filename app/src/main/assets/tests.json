@@ -67,19 +67,23 @@
       "results": [
         {
           "id": 1,
-          "name": "Nitrate"
+          "name": "Nitrate",
+          "unit": "mg/l"
         },
         {
           "id": 2,
-          "name": "Phosphate"
+          "name": "Phosphate",
+          "unit": "mg/l"
         },
         {
           "id": 3,
-          "name": "pH"
+          "name": "pH",
+          "unit": ""
         },
         {
           "id": 4,
-          "name": "DissolvedOxygen"
+          "name": "DissolvedOxygen",
+          "unit": "mg/l"
         }
       ]
     }
