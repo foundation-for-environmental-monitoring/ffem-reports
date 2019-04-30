@@ -41,6 +41,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProviders;
+
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -49,10 +53,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModelProviders;
 import io.ffem.reports.R;
 import io.ffem.reports.RecommendationFragment;
 import io.ffem.reports.WaterReportFragment;
@@ -77,16 +77,23 @@ public class RecommendActivity extends BaseActivity {
     private final RecommendationInfo recommendationInfo = new RecommendationInfo();
 
     private final WaterTestInfo waterTestInfo = new WaterTestInfo();
-
+    boolean timeout = true;
     private TestInfo testInfo;
     private String printTemplate;
     private String date;
-
     private String uuid;
     private RecommendationFragment recommendationFragment;
     private FragmentManager fragmentManager;
-
     private WaterReportFragment waterReportFragment;
+
+    public static boolean isNumeric(String strNum) {
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException | NullPointerException nfe) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,21 +132,20 @@ public class RecommendActivity extends BaseActivity {
         }
     }
 
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        super.onAttachFragment(fragment);
-
-        switch (uuid) {
-            case "ff51c68c-faec-49e9-87b4-0880684be446":
-                if (getWaterReport()) {
-                    prepareWaterTestPrintDocument();
-                }
-                break;
-            default:
-                getRecommendation();
-        }
-
-    }
+//    @Override
+//    public void onAttachFragment(Fragment fragment) {
+//        super.onAttachFragment(fragment);
+//
+//        switch (uuid) {
+//            case "ff51c68c-faec-49e9-87b4-0880684be446":
+//                if (getWaterReport()) {
+//                    prepareWaterTestPrintDocument();
+//                }
+//                break;
+//            default:
+//                getRecommendation();
+//        }
+//    }
 
     private boolean getWaterReport() {
         waterTestInfo.testerName = getStringExtra("Tester name");
@@ -320,12 +326,16 @@ public class RecommendActivity extends BaseActivity {
         recommendationInfo.geoLocation = getStringExtra("Geolocation");
 
         String crop = getIntent().getStringExtra("Crop");
+        String soilType = getIntent().getStringExtra("Soil Type");
+        String varietyCode = getIntent().getStringExtra("Variety");
+        String seasonCode = getIntent().getStringExtra("Season");
 
         if (recommendationInfo.farmerName.isEmpty() || recommendationInfo.sampleNumber.isEmpty() ||
                 state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop.isEmpty()) {
             Toast.makeText(this,
                     "All farmer and crop details should be filled before requesting a recommendation.",
                     Toast.LENGTH_LONG).show();
+            pd.dismiss();
             finish();
             return;
         }
@@ -334,11 +344,16 @@ public class RecommendActivity extends BaseActivity {
         recommendationInfo.phosphorusResult = getStringExtra("Available Phosphorous", "");
         recommendationInfo.potassiumResult = getStringExtra("Available Potassium", "");
 
+//        recommendationInfo.nitrogenResult = "1";
+//        recommendationInfo.phosphorusResult = "1";
+//        recommendationInfo.potassiumResult = "1";
+
         if (recommendationInfo.nitrogenResult.isEmpty() || recommendationInfo.phosphorusResult.isEmpty() ||
                 recommendationInfo.potassiumResult.isEmpty()) {
             Toast.makeText(this,
                     "All tests have to be completed before requesting a recommendation",
                     Toast.LENGTH_LONG).show();
+            pd.dismiss();
             finish();
             return;
         }
@@ -351,12 +366,18 @@ public class RecommendActivity extends BaseActivity {
                 "document.getElementsByClassName('myButton')[0].click();" +
                 "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
                 "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
+                "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
+                "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
+                "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
                 "javascript:document.getElementById('AddCrop').click();" +
                 "(function() { " +
                 "return " +
                 "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
                 "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
                 "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
+                "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
+                "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
+                "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
                 "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
                 "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
                 "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
@@ -371,23 +392,22 @@ public class RecommendActivity extends BaseActivity {
                 "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
                 "})();";
 
-        webView.setWebViewClient(new WebViewClient() {
+        Runnable run = () -> {
+            if (timeout) {
+                pd.dismiss();
+                webView.stopLoading();
+                finish();
+                Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show();
+            }
+        };
+        Handler myHandler = new Handler(Looper.myLooper());
+        myHandler.postDelayed(run, 20000);
 
-            boolean timeout = true;
+        webView.setWebViewClient(new WebViewClient() {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                Runnable run = () -> {
-                    if (timeout) {
-                        pd.dismiss();
-                        webView.stopLoading();
-                        finish();
-                        Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show();
-                    }
-                };
-                Handler myHandler = new Handler(Looper.myLooper());
-                myHandler.postDelayed(run, 20000);
             }
 
             @Override
@@ -406,15 +426,41 @@ public class RecommendActivity extends BaseActivity {
             }
 
             public void onPageFinished(WebView view, String url) {
+
                 view.evaluateJavascript(js, s -> {
 
                     String[] values = s.replace("\"", "").split(",");
                     if (values.length > 10) {
                         timeout = false;
-                        displayResult(values);
+
+                        if (s.contains("NaN")) {
+                            Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show();
+
+                            Intent resultIntent = new Intent();
+                            SparseArray<String> results = new SparseArray<>();
+
+                            for (int i = 0; i < testInfo.getResults().size(); i++) {
+                                Result result = testInfo.getResults().get(i);
+                                resultIntent.putExtra(result.getName().replace(" ", "_")
+                                        + testInfo.getResultSuffix(), "");
+                                results.append(result.getId(), "");
+                            }
+
+                            setResult(Activity.RESULT_OK, resultIntent);
+
+                            pd.dismiss();
+
+                            finish();
+
+                        } else {
+                            displayResult(values);
+                        }
                     }
+
+                    (new Handler()).postDelayed(() -> {
+                        pd.dismiss();
+                    }, 5000);
                 });
-                (new Handler()).postDelayed(pd::dismiss, 5000);
             }
         });
 
@@ -430,19 +476,27 @@ public class RecommendActivity extends BaseActivity {
         recommendationInfo.district = values[1];
         recommendationInfo.crop = values[2];
 
+        int startIndex = 0;
+        for (int i = 3; i < values.length; i++) {
+            if (values[i].equals("NaN") || isNumeric(values[i])) {
+                startIndex = i - 1;
+                break;
+            }
+        }
+
         for (int i = 0; i < testInfo.getResults().size(); i++) {
             Result result = testInfo.getResults().get(i);
             resultIntent.putExtra(result.getName().replace(" ", "_")
-                    + testInfo.getResultSuffix(), values[i + 3]);
+                    + testInfo.getResultSuffix(), values[i + startIndex]);
 
             results.append(result.getId(), result.getResult());
 
-            printTemplate = printTemplate.replace("#Value" + i + "#", values[i + 3]);
+            printTemplate = printTemplate.replace("#Value" + i + "#", values[i + startIndex]);
         }
 
         preparePrintDocument();
 
-        recommendationInfo.values = Arrays.copyOfRange(values, 3, values.length);
+        recommendationInfo.values = Arrays.copyOfRange(values, startIndex, values.length);
 
         recommendationFragment.displayResult(recommendationInfo);
 
