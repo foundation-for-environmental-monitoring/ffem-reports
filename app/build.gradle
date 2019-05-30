@@ -14,10 +14,10 @@ android {
 //    signingConfigs {
 //        signingConfigs {
 //            appRelease {
-//                storeFile file(FFEM_CADDISFLY_RELEASE_STORE_FILE)
-//                storePassword FFEM_CADDISFLY_RELEASE_STORE_PASSWORD
-//                keyAlias FFEM_CADDISFLY_RELEASE_KEY_ALIAS
-//                keyPassword FFEM_CADDISFLY_RELEASE_KEY_PASSWORD
+//                storeFile file(FFEM_RELEASE_STORE_FILE)
+//                storePassword FFEM_RELEASE_STORE_PASSWORD
+//                keyAlias FFEM_RELEASE_KEY_ALIAS
+//                keyPassword FFEM_RELEASE_KEY_PASSWORD
 //            }
 //        }
 //    }
@@ -68,13 +68,13 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.8.0'
 
     // AndroidJUnitRunner and JUnit Rules
-    androidTestImplementation 'androidx.test:rules:1.1.1'
-    androidTestImplementation "androidx.test.ext:junit:1.1.0"
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation "androidx.test.ext:junit:1.1.1"
 
     // Espresso
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.1.1'
-    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.1.1') {
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
+    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.2.0-beta01') {
         exclude group: 'com.android.support'
         exclude group: 'javax.inject'
     }

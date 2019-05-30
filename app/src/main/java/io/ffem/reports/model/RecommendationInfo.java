@@ -12,5 +12,6 @@ public class RecommendationInfo {
     public String nitrogenResult;
     public String phosphorusResult;
     public String potassiumResult;
+    public String pH;
     public String[] values;
 }

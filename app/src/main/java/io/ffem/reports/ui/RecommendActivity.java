@@ -60,7 +60,6 @@ import io.ffem.reports.common.SensorConstants;
 import io.ffem.reports.model.RecommendationInfo;
 import io.ffem.reports.model.Result;
 import io.ffem.reports.model.TestInfo;
-import io.ffem.reports.model.WaterTestInfo;
 import io.ffem.reports.util.AlertUtil;
 import io.ffem.reports.util.AssetsManager;
 import io.ffem.reports.viewmodel.TestListViewModel;
@@ -76,19 +75,17 @@ public class RecommendActivity extends BaseActivity {
     private final Activity activity = this;
     private final RecommendationInfo recommendationInfo = new RecommendationInfo();
 
-    private final WaterTestInfo waterTestInfo = new WaterTestInfo();
+    //    private final WaterTestInfo waterTestInfo = new WaterTestInfo();
     boolean timeout = true;
     private TestInfo testInfo;
     private String printTemplate;
     private String date;
     private String uuid;
     private RecommendationFragment recommendationFragment;
-    private FragmentManager fragmentManager;
-    private WaterReportFragment waterReportFragment;
 
     public static boolean isNumeric(String strNum) {
         try {
-            double d = Double.parseDouble(strNum);
+            Double.parseDouble(strNum);
         } catch (NumberFormatException | NullPointerException nfe) {
             return false;
         }
@@ -101,7 +98,7 @@ public class RecommendActivity extends BaseActivity {
         setContentView(R.layout.activity_recommend);
 
 
-        fragmentManager = getSupportFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
 
         getTestSelectedByExternalApp(getIntent());
 
@@ -110,25 +107,23 @@ public class RecommendActivity extends BaseActivity {
 //            finish();
 //        }
 
-        switch (uuid) {
-            case "ff51c68c-faec-49e9-87b4-0880684be446":
-                setTitle("Water Test Report");
-                waterReportFragment = WaterReportFragment.newInstance("", "");
-                fragmentManager.beginTransaction()
-                        .add(R.id.fragment_container, waterReportFragment,
-                                WaterReportFragment.class.getSimpleName()).commit();
-                printTemplate = AssetsManager.getInstance(this)
-                        .loadJsonFromAsset("templates/water_test_template.html");
-                break;
-            default:
-                setTitle("Fertilizer Recommendation");
-                recommendationFragment = RecommendationFragment.newInstance("", "");
-                fragmentManager.beginTransaction()
-                        .add(R.id.fragment_container, recommendationFragment,
-                                RecommendationFragment.class.getSimpleName()).commit();
-                printTemplate = AssetsManager.getInstance(this)
-                        .loadJsonFromAsset("templates/recommendation_template.html");
-                getRecommendation();
+        if ("ff51c68c-faec-49e9-87b4-0880684be446".equals(uuid)) {
+            setTitle("Water Test Report");
+            WaterReportFragment waterReportFragment = WaterReportFragment.newInstance("", "");
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, waterReportFragment,
+                            WaterReportFragment.class.getSimpleName()).commit();
+            printTemplate = AssetsManager.getInstance(this)
+                    .loadJsonFromAsset("templates/water_test_template.html");
+        } else {
+            setTitle("Fertilizer Recommendation");
+            recommendationFragment = RecommendationFragment.newInstance("", "");
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, recommendationFragment,
+                            RecommendationFragment.class.getSimpleName()).commit();
+            printTemplate = AssetsManager.getInstance(this)
+                    .loadJsonFromAsset("templates/recommendation_template.html");
+            getRecommendation();
         }
     }
 
@@ -146,45 +141,6 @@ public class RecommendActivity extends BaseActivity {
 //                getRecommendation();
 //        }
 //    }
-
-    private boolean getWaterReport() {
-        waterTestInfo.testerName = getStringExtra("Tester name");
-        waterTestInfo.phoneNumber = getStringExtra("Phone number");
-        waterTestInfo.lake = getStringExtra("Lake");
-        waterTestInfo.location = getStringExtra("Location");
-        waterTestInfo.date = getStringExtra("Date and time");
-        waterTestInfo.time = getStringExtra("Time");
-
-        if (waterTestInfo.testerName.isEmpty() || waterTestInfo.lake.isEmpty()) {
-            Toast.makeText(this,
-                    "All details should be filled for generating a test report.",
-                    Toast.LENGTH_LONG).show();
-            finish();
-            return false;
-        }
-
-        waterTestInfo.nitrateResult = getStringExtra("Nitrate", "");
-        waterTestInfo.nitrateUnit = testInfo.getResults().get(0).getUnit();
-        waterTestInfo.phosphateResult = getStringExtra("Phosphate", "");
-        waterTestInfo.phosphateUnit = testInfo.getResults().get(1).getUnit();
-        waterTestInfo.pHResult = getStringExtra("pH", "");
-        waterTestInfo.pHUnit = testInfo.getResults().get(2).getUnit();
-        waterTestInfo.dissolvedOxygenResult = getStringExtra("Dissolved Oxygen", "");
-        waterTestInfo.dissolvedOxygenUnit = testInfo.getResults().get(3).getUnit();
-
-        if (waterTestInfo.nitrateResult.isEmpty() || waterTestInfo.phosphateResult.isEmpty() ||
-                waterTestInfo.pHResult.isEmpty() || waterTestInfo.dissolvedOxygenResult.isEmpty()) {
-            Toast.makeText(this,
-                    "All tests have to be completed for generating the test report",
-                    Toast.LENGTH_LONG).show();
-            finish();
-        }
-
-        waterReportFragment.displayResult(waterTestInfo);
-
-        return true;
-
-    }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -223,6 +179,45 @@ public class RecommendActivity extends BaseActivity {
             setTitle(R.string.notFound);
             alertTestTypeNotSupported();
         }
+    }
+
+    /*
+    private boolean getWaterReport() {
+        waterTestInfo.testerName = getStringExtra("Tester name");
+        waterTestInfo.phoneNumber = getStringExtra("Phone number");
+        waterTestInfo.lake = getStringExtra("Lake");
+        waterTestInfo.location = getStringExtra("Location");
+        waterTestInfo.date = getStringExtra("Date and time");
+        waterTestInfo.time = getStringExtra("Time");
+
+        if (waterTestInfo.testerName.isEmpty() || waterTestInfo.lake.isEmpty()) {
+            Toast.makeText(this,
+                    "All details should be filled for generating a test report.",
+                    Toast.LENGTH_LONG).show();
+            finish();
+            return false;
+        }
+
+        waterTestInfo.nitrateResult = getStringExtra("Nitrate", "");
+        waterTestInfo.nitrateUnit = testInfo.getResults().get(0).getUnit();
+        waterTestInfo.phosphateResult = getStringExtra("Phosphate", "");
+        waterTestInfo.phosphateUnit = testInfo.getResults().get(1).getUnit();
+        waterTestInfo.pHResult = getStringExtra("pH", "");
+        waterTestInfo.pHUnit = testInfo.getResults().get(2).getUnit();
+        waterTestInfo.dissolvedOxygenResult = getStringExtra("Dissolved Oxygen", "");
+        waterTestInfo.dissolvedOxygenUnit = testInfo.getResults().get(3).getUnit();
+
+        if (waterTestInfo.nitrateResult.isEmpty() || waterTestInfo.phosphateResult.isEmpty() ||
+                waterTestInfo.pHResult.isEmpty() || waterTestInfo.dissolvedOxygenResult.isEmpty()) {
+            Toast.makeText(this,
+                    "All tests have to be completed for generating the test report",
+                    Toast.LENGTH_LONG).show();
+            finish();
+        }
+
+        waterReportFragment.displayResult(waterTestInfo);
+
+        return true;
     }
 
     private void prepareWaterTestPrintDocument() {
@@ -265,6 +260,7 @@ public class RecommendActivity extends BaseActivity {
 
         printTemplate = printTemplate.replaceAll("#.*?#", "");
     }
+    */
 
     /**
      * Alert displayed when an unsupported contaminant test type was requested.
@@ -343,6 +339,7 @@ public class RecommendActivity extends BaseActivity {
         recommendationInfo.nitrogenResult = getStringExtra("Available Nitrogen", "");
         recommendationInfo.phosphorusResult = getStringExtra("Available Phosphorous", "");
         recommendationInfo.potassiumResult = getStringExtra("Available Potassium", "");
+        recommendationInfo.pH = getStringExtra("pH", "");
 
 //        recommendationInfo.nitrogenResult = "1";
 //        recommendationInfo.phosphorusResult = "1";
@@ -434,32 +431,16 @@ public class RecommendActivity extends BaseActivity {
                         timeout = false;
 
                         if (s.contains("NaN")) {
-                            Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show();
-
-                            Intent resultIntent = new Intent();
-                            SparseArray<String> results = new SparseArray<>();
-
-                            for (int i = 0; i < testInfo.getResults().size(); i++) {
-                                Result result = testInfo.getResults().get(i);
-                                resultIntent.putExtra(result.getName().replace(" ", "_")
-                                        + testInfo.getResultSuffix(), "");
-                                results.append(result.getId(), "");
-                            }
-
-                            setResult(Activity.RESULT_OK, resultIntent);
-
-                            pd.dismiss();
-
-                            finish();
+                            returnEmptyResult(pd);
 
                         } else {
-                            displayResult(values);
+                            if (!displayResult(values)) {
+                                returnEmptyResult(pd);
+                            }
                         }
                     }
 
-                    (new Handler()).postDelayed(() -> {
-                        pd.dismiss();
-                    }, 5000);
+                    (new Handler()).postDelayed(pd::dismiss, 5000);
                 });
             }
         });
@@ -467,7 +448,22 @@ public class RecommendActivity extends BaseActivity {
         webView.loadUrl(url);
     }
 
-    private void displayResult(String[] values) {
+    private void returnEmptyResult(ProgressDialog pd) {
+        Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show();
+        Intent resultIntent = new Intent();
+        SparseArray<String> results = new SparseArray<>();
+        for (int i = 0; i < testInfo.getResults().size(); i++) {
+            Result result = testInfo.getResults().get(i);
+            resultIntent.putExtra(result.getName().replace(" ", "_")
+                    + testInfo.getResultSuffix(), "");
+            results.append(result.getId(), "");
+        }
+        setResult(Activity.RESULT_OK, resultIntent);
+        pd.dismiss();
+        finish();
+    }
+
+    private boolean displayResult(String[] values) {
 
         Intent resultIntent = new Intent();
 
@@ -484,6 +480,8 @@ public class RecommendActivity extends BaseActivity {
             }
         }
 
+        double value = 0;
+
         for (int i = 0; i < testInfo.getResults().size(); i++) {
             Result result = testInfo.getResults().get(i);
             resultIntent.putExtra(result.getName().replace(" ", "_")
@@ -491,7 +489,19 @@ public class RecommendActivity extends BaseActivity {
 
             results.append(result.getId(), result.getResult());
 
+            if ((i & 1) != 0) {
+                try {
+                    value += Double.parseDouble(values[i + startIndex]);
+                } catch (NumberFormatException | NullPointerException nfe) {
+                    value = 0;
+                }
+            }
+
             printTemplate = printTemplate.replace("#Value" + i + "#", values[i + startIndex]);
+        }
+
+        if (value == 0) {
+            return false;
         }
 
         preparePrintDocument();
@@ -501,6 +511,8 @@ public class RecommendActivity extends BaseActivity {
         recommendationFragment.displayResult(recommendationInfo);
 
         setResult(Activity.RESULT_OK, resultIntent);
+
+        return true;
     }
 
     private void preparePrintDocument() {
@@ -528,6 +540,7 @@ public class RecommendActivity extends BaseActivity {
         printTemplate = printTemplate.replace("#Nitrogen#", recommendationInfo.nitrogenResult);
         printTemplate = printTemplate.replace("#Phosphorus#", recommendationInfo.phosphorusResult);
         printTemplate = printTemplate.replace("#Potassium#", recommendationInfo.potassiumResult);
+        printTemplate = printTemplate.replace("#pH#", recommendationInfo.pH);
 
         printTemplate = printTemplate.replaceAll("#.*?#", "");
     }
@@ -565,6 +578,9 @@ public class RecommendActivity extends BaseActivity {
         if (value == null) {
             return defaultValue;
         }
+
+        value = value.replace(">", "")
+                .replace("<", "").replace(" ", "");
 
         return value;
     }
