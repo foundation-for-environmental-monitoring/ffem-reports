@@ -409,7 +409,13 @@ public class RecommendActivity extends BaseActivity {
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
+                if (description.contains("ERR_INTERNET")) {
+                    Toast.makeText(activity,
+                            getString(R.string.no_data_connection),
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
+                }
                 timeout = false;
                 pd.dismiss();
                 finish();

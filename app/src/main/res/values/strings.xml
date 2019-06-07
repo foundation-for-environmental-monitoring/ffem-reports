@@ -53,5 +53,6 @@
     <string name="nitrate">Nitrate</string>
     <string name="phosphate">Phosphate</string>
     <string name="pH">pH</string>
+    <string name="no_data_connection">No data connection. Please connect to the internet and try again.</string>
 
 </resources>
