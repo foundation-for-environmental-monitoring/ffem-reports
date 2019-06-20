@@ -14,6 +14,10 @@
     <string name="ok">OK</string>
     <string name="info">Info</string>
     <string name="notFound">Not found</string>
+    <string name="app_not_found">App not found</string>
+    <string name="install_app">ffem Collect is not installed.\n\nPlease install ffem Collect app from Play store.</string>
+    <string name="go_to_play_store">Go to Play store</string>
+
     <string name="go_to_external_app">Launch ffem Collect</string>
     <string name="close">Close</string>
 
@@ -54,5 +58,6 @@
     <string name="phosphate">Phosphate</string>
     <string name="pH">pH</string>
     <string name="no_data_connection">No data connection. Please connect to the internet and try again.</string>
+    <string name="error_values_not_filled">All farmer and crop details should be filled before requesting a recommendation.</string>
 
 </resources>

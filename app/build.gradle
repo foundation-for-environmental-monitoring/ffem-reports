@@ -74,13 +74,15 @@ dependencies {
     // Espresso
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
-    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.2.0-beta01') {
+    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.2.0') {
         exclude group: 'com.android.support'
         exclude group: 'javax.inject'
     }
 
     // Robolectric
-    testImplementation 'org.robolectric:robolectric:4.2'
+    testImplementation 'org.robolectric:robolectric:4.3'
     testImplementation "org.robolectric:shadows-support-v4:3.4-rc2"
 
+    // UIAutomator
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
 }

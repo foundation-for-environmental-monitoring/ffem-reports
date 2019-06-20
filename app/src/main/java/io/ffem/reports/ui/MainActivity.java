@@ -19,7 +19,9 @@
 
 package io.ffem.reports.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,8 +30,8 @@ import android.view.MenuItem;
 import android.view.View;
 
 import androidx.databinding.DataBindingUtil;
+
 import io.ffem.reports.R;
-import io.ffem.reports.util.AlertUtil;
 
 public class MainActivity extends BaseActivity {
 
@@ -65,12 +67,16 @@ public class MainActivity extends BaseActivity {
     }
 
     private void alertDependantAppNotFound() {
-        String message = String.format("%s\r\n\r\n%s", "ffem Collect is not installed.",
-                "Please install the ffem Collect app from Play store.");
-
-        AlertUtil.showAlert(this, R.string.notFound, message, R.string.close,
-                (dialogInterface, i) -> closeApp(0),
-                null, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog);
+        builder.setTitle(R.string.app_not_found)
+                .setMessage(R.string.install_app)
+                .setPositiveButton(R.string.go_to_play_store, (dialogInterface, i1)
+                        -> startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/developer?id=Foundation+for+Environmental+Monitoring"))))
+                .setNegativeButton(android.R.string.cancel,
+                        (dialogInterface, i1) -> dialogInterface.dismiss())
+                .setCancelable(false)
+                .show();
     }
 
     private void closeApp(int delay) {
