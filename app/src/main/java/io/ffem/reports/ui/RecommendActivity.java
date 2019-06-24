@@ -328,8 +328,7 @@ public class RecommendActivity extends BaseActivity {
 
         if (recommendationInfo.farmerName.isEmpty() || recommendationInfo.sampleNumber.isEmpty() ||
                 state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop.isEmpty()) {
-            Toast.makeText(this,
-                    "All farmer and crop details should be filled before requesting a recommendation.",
+            Toast.makeText(this, R.string.error_values_not_filled,
                     Toast.LENGTH_LONG).show();
             pd.dismiss();
             finish();
