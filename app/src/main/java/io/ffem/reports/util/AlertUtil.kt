@@ -17,7 +17,8 @@ object AlertUtil {
                   negativeListener: DialogInterface.OnClickListener?,
                   cancelListener: DialogInterface.OnCancelListener): AlertDialog {
         return showAlert(context, context.getString(title), message, okButtonText, R.string.cancel,
-                true, false, positiveListener, negativeListener, cancelListener)
+                cancelable = true, isDestructive = false, positiveListener = positiveListener,
+                negativeListener = negativeListener, cancelListener = cancelListener)
     }
 
     /**
@@ -37,8 +38,7 @@ object AlertUtil {
                           positiveListener: DialogInterface.OnClickListener?,
                           negativeListener: DialogInterface.OnClickListener?,
                           cancelListener: DialogInterface.OnCancelListener): AlertDialog {
-        val builder: AlertDialog.Builder
-        builder = if (isDestructive) {
+        val builder: AlertDialog.Builder = if (isDestructive) {
             val a = context.obtainStyledAttributes(R.styleable.BaseActivity)
             val style = a.getResourceId(R.styleable.BaseActivity_dialogDestructiveButton, 0)
             a.recycle()

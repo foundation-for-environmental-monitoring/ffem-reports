@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 class AssetsManager(context: Context) {
-    private val manager: AssetManager?
+    private val manager: AssetManager? = context.assets
     val json: String?
     fun loadJsonFromAsset(fileName: String?): String? {
         val json: String
@@ -49,7 +49,6 @@ class AssetsManager(context: Context) {
     }
 
     init {
-        manager = context.assets
         json = loadJsonFromAsset(Constants.TESTS_META_FILENAME)
     }
 }

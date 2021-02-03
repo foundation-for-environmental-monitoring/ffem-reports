@@ -41,7 +41,6 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import io.ffem.reports.R
 import io.ffem.reports.RecommendationFragment
-import io.ffem.reports.WaterReportFragment
 import io.ffem.reports.common.SensorConstants
 import io.ffem.reports.model.RecommendationInfo
 import io.ffem.reports.model.TestInfo
@@ -76,17 +75,9 @@ class RecommendActivity : BaseActivity() {
 //            sendDummyResultForDebugging();
 //            finish();
 //        }
-        if ("ff51c68c-faec-49e9-87b4-0880684be446" == uuid) {
-            title = "Water Test Report"
-            val waterReportFragment = WaterReportFragment.newInstance("", "")
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, waterReportFragment,
-                            WaterReportFragment::class.java.simpleName).commit()
-            printTemplate = getInstance(this)!!
-                    .loadJsonFromAsset("templates/water_test_template.html")
-        } else {
+        if ("ef9f8703-36b1-407c-9175-4184f6fc974f" == uuid) {
             title = "Fertilizer Recommendation"
-            recommendationFragment = RecommendationFragment.newInstance("", "")
+            recommendationFragment = RecommendationFragment.newInstance()
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_container, recommendationFragment!!,
                             RecommendationFragment::class.java.simpleName).commit()
@@ -280,7 +271,7 @@ class RecommendActivity : BaseActivity() {
             val soilType = intent.getStringExtra("Soil_Type")
             val varietyCode = intent.getStringExtra("Variety")
             val seasonCode = intent.getStringExtra("Season")
-            if (recommendationInfo.farmerName.isEmpty() || recommendationInfo.sampleNumber.isEmpty() ||
+            if (recommendationInfo.farmerName!!.isEmpty() || recommendationInfo.sampleNumber!!.isEmpty() ||
                     state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()) {
                 Toast.makeText(this, R.string.error_values_not_filled,
                         Toast.LENGTH_LONG).show()
@@ -296,8 +287,8 @@ class RecommendActivity : BaseActivity() {
 //        recommendationInfo.nitrogenResult = "1";
 //        recommendationInfo.phosphorusResult = "1";
 //        recommendationInfo.potassiumResult = "1";
-            if (recommendationInfo.nitrogenResult.isEmpty() || recommendationInfo.phosphorusResult.isEmpty() ||
-                    recommendationInfo.potassiumResult.isEmpty()) {
+            if (recommendationInfo.nitrogenResult!!.isEmpty() || recommendationInfo.phosphorusResult!!.isEmpty() ||
+                    recommendationInfo.potassiumResult!!.isEmpty()) {
                 Toast.makeText(this,
                         "All tests have to be completed before requesting a recommendation",
                         Toast.LENGTH_LONG).show()
@@ -349,7 +340,8 @@ class RecommendActivity : BaseActivity() {
             val myHandler = Handler(Looper.myLooper()!!)
             myHandler.postDelayed(run, 20000)
             webView.webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap) {
+
+                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                     super.onPageStarted(view, url, favicon)
                 }
 
@@ -403,9 +395,9 @@ class RecommendActivity : BaseActivity() {
         Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show()
         val resultIntent = Intent()
         val results = SparseArray<String>()
-        for (i in testInfo!!.results.indices) {
-            val result = testInfo!!.results[i]
-            resultIntent.putExtra(result.name.replace(" ", "_")
+        for (i in testInfo!!.results!!.indices) {
+            val result = testInfo!!.results!![i]
+            resultIntent.putExtra(result.name!!.replace(" ", "_")
                     + testInfo!!.resultSuffix, "")
             results.append(result.id, "")
         }
@@ -428,9 +420,9 @@ class RecommendActivity : BaseActivity() {
             }
         }
         var value = 0.0
-        for (i in testInfo!!.results.indices) {
-            val result = testInfo!!.results[i]
-            resultIntent.putExtra(result.name.trim { it <= ' ' }.replace(" ", "_")
+        for (i in testInfo!!.results!!.indices) {
+            val result = testInfo!!.results!![i]
+            resultIntent.putExtra(result.name!!.trim { it <= ' ' }.replace(" ", "_")
                     + testInfo!!.resultSuffix, values[i + startIndex])
             results.append(result.id, result.result)
             if (i and 1 != 0) {
@@ -455,29 +447,30 @@ class RecommendActivity : BaseActivity() {
     }
 
     private fun preparePrintDocument() {
+
         date = SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().time)
         printTemplate = printTemplate!!.replace("#DateTime#", date!!)
         date = SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().time)
         printTemplate = printTemplate!!.replace("#Date#", date!!)
-        printTemplate = printTemplate!!.replace("#FarmerName#", recommendationInfo.farmerName)
-        printTemplate = printTemplate!!.replace("#PhoneNumber#", recommendationInfo.phoneNumber)
-        printTemplate = printTemplate!!.replace("#VillageName#", recommendationInfo.villageName)
-        printTemplate = printTemplate!!.replace("#State#", recommendationInfo.state)
-        printTemplate = printTemplate!!.replace("#District#", recommendationInfo.district)
-        printTemplate = printTemplate!!.replace("#SampleNumber#", recommendationInfo.sampleNumber)
-        printTemplate = printTemplate!!.replace("#Crop#", recommendationInfo.crop)
-        if (recommendationInfo.geoLocation != null && recommendationInfo.geoLocation.isNotEmpty()) {
-            val geoValues = recommendationInfo.geoLocation.split(" ".toRegex()).toTypedArray()
+        printTemplate = printTemplate!!.replace("#FarmerName#", recommendationInfo.farmerName!!)
+        printTemplate = printTemplate!!.replace("#PhoneNumber#", recommendationInfo.phoneNumber!!)
+        printTemplate = printTemplate!!.replace("#VillageName#", recommendationInfo.villageName!!)
+        printTemplate = printTemplate!!.replace("#State#", recommendationInfo.state!!)
+        printTemplate = printTemplate!!.replace("#District#", recommendationInfo.district!!)
+        printTemplate = printTemplate!!.replace("#SampleNumber#", recommendationInfo.sampleNumber!!)
+        printTemplate = printTemplate!!.replace("#Crop#", recommendationInfo.crop!!)
+        if (recommendationInfo.geoLocation != null && recommendationInfo.geoLocation!!.isNotEmpty()) {
+            val geoValues = recommendationInfo.geoLocation!!.split(" ".toRegex()).toTypedArray()
             for (i in geoValues.indices) {
                 // Also show unit (m) for last two values
                 printTemplate = printTemplate!!.replace("#Geo$i#",
                         if (i > 1) geoValues[i] + "m" else geoValues[i])
             }
         }
-        printTemplate = printTemplate!!.replace("#Nitrogen#", recommendationInfo.nitrogenResult)
-        printTemplate = printTemplate!!.replace("#Phosphorus#", recommendationInfo.phosphorusResult)
-        printTemplate = printTemplate!!.replace("#Potassium#", recommendationInfo.potassiumResult)
-        printTemplate = printTemplate!!.replace("#pH#", recommendationInfo.pH)
+        printTemplate = printTemplate!!.replace("#Nitrogen#", recommendationInfo.nitrogenResult!!)
+        printTemplate = printTemplate!!.replace("#Phosphorus#", recommendationInfo.phosphorusResult!!)
+        printTemplate = printTemplate!!.replace("#Potassium#", recommendationInfo.potassiumResult!!)
+        printTemplate = printTemplate!!.replace("#pH#", recommendationInfo.pH!!)
         printTemplate = printTemplate!!.replace("#.*?#".toRegex(), "")
     }
 
