@@ -1,4 +1,12 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
+
+def propertiesFile = file(System.properties['user.home'] + '/.gradle/gradle.properties')
+def properties = new Properties()
+if (propertiesFile.exists()) {
+    properties.load(new FileInputStream(propertiesFile))
+}
 
 android {
     compileSdkVersion 30
@@ -6,42 +14,67 @@ android {
         applicationId "io.ffem.reports"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 6
-        versionName "1.3"
+        versionCode 7
+        versionName "1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-//    signingConfigs {
-//        signingConfigs {
-//            appRelease {
-//                storeFile file(FFEM_RELEASE_STORE_FILE)
-//                storePassword FFEM_RELEASE_STORE_PASSWORD
-//                keyAlias FFEM_RELEASE_KEY_ALIAS
-//                keyPassword FFEM_RELEASE_KEY_PASSWORD
-//            }
-//        }
-//    }
-//
-//    buildTypes {
-//        debug {
-//            debuggable true
-//        }
-//        release {
-//            signingConfig signingConfigs.appRelease
-//            minifyEnabled true
-//            shrinkResources true
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//            zipAlignEnabled true
-//        }
-//    }
+    signingConfigs {
+        release {
+            if (properties.getProperty('FFEM_RELEASE_STORE_FILE')) {
+                storeFile file(properties.getProperty('FFEM_RELEASE_STORE_FILE'))
+                storePassword properties.getProperty('FFEM_RELEASE_STORE_PASSWORD')
+                keyAlias properties.getProperty('FFEM_RELEASE_KEY_ALIAS')
+                keyPassword properties.getProperty('FFEM_RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
 
-    dataBinding {
-        enabled = true
+    buildTypes {
+        release {
+            if (properties.getProperty('FFEM_RELEASE_STORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled(true)
+            shrinkResources true
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "java.util.Date", "BUILD_TIME", "new java.util.Date(" +
+                    (System.currentTimeMillis()) + "L)"
+            android.applicationVariants.all { variant ->
+                variant.outputs.all {
+                    outputFileName = "ffem-reports-${variant.versionCode}.apk"
+                }
+            }
+        }
+    }
+
+    defaultConfig {
+        buildConfigField "java.util.concurrent.atomic.AtomicBoolean", "INSTRUMENTED_TEST_RUNNING",
+                "new java.util.concurrent.atomic.AtomicBoolean(false)"
+        buildConfigField "java.util.Date", "BUILD_TIME", "new java.util.Date(" + 0L + ")"
+    }
+
+    buildFeatures {
+        dataBinding true
+        viewBinding true
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+
+    tasks.withType(Test) {
+        testLogging {
+            exceptionFormat "full"
+            events "started", "skipped", "passed", "failed"
+            showStandardStreams true
+        }
     }
 }
 

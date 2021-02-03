@@ -32,13 +32,14 @@ import io.ffem.reports.util.ApiUtil;
  */
 public class AboutActivity extends BaseActivity {
 
+    private ActivityAboutBinding b;
     private NoticesDialogFragment dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActivityAboutBinding b = DataBindingUtil.setContentView(this, R.layout.activity_about);
+        b = ActivityAboutBinding.inflate(getLayoutInflater());
 
         b.textVersion.setText(ApiUtil.getAppVersion(this));
 

@@ -162,7 +162,7 @@ public class RecommendActivity extends BaseActivity {
             if (testInfo != null && intent.getExtras() != null) {
                 for (int i = 0; i < intent.getExtras().keySet().size(); i++) {
                     String code = Objects.requireNonNull(intent.getExtras().keySet().toArray())[i].toString();
-                    if (!code.equals(SensorConstants.TEST_ID)) {
+                    if (!code.equals(SensorConstants.TEST_ID) && !code.contains("__")) {
                         Pattern pattern = Pattern.compile("_(\\d*?)$");
                         Matcher matcher = pattern.matcher(code);
                         if (matcher.find()) {
@@ -314,15 +314,15 @@ public class RecommendActivity extends BaseActivity {
 
         String state = getStringExtra("State");
         String district = getStringExtra("District");
-        String cropGroup = getStringExtra("Crop Group");
-        recommendationInfo.farmerName = getStringExtra("Farmer name");
-        recommendationInfo.phoneNumber = getStringExtra("Phone number");
-        recommendationInfo.sampleNumber = getStringExtra("Sample number");
-        recommendationInfo.villageName = getStringExtra("Village name");
+        String cropGroup = getStringExtra("Crop_Group");
+        recommendationInfo.farmerName = getStringExtra("Farmer_name");
+        recommendationInfo.phoneNumber = getStringExtra("Phone_number");
+        recommendationInfo.sampleNumber = getStringExtra("Sample_number");
+        recommendationInfo.villageName = getStringExtra("Village_name");
         recommendationInfo.geoLocation = getStringExtra("Geolocation");
 
         String crop = getIntent().getStringExtra("Crop");
-        String soilType = getIntent().getStringExtra("Soil Type");
+        String soilType = getIntent().getStringExtra("Soil_Type");
         String varietyCode = getIntent().getStringExtra("Variety");
         String seasonCode = getIntent().getStringExtra("Season");
 
@@ -335,9 +335,9 @@ public class RecommendActivity extends BaseActivity {
             return;
         }
 
-        recommendationInfo.nitrogenResult = getStringExtra("Available Nitrogen", "");
-        recommendationInfo.phosphorusResult = getStringExtra("Available Phosphorous", "");
-        recommendationInfo.potassiumResult = getStringExtra("Available Potassium", "");
+        recommendationInfo.nitrogenResult = getStringExtra("Available_Nitrogen", "");
+        recommendationInfo.phosphorusResult = getStringExtra("Available_Phosphorous", "");
+        recommendationInfo.potassiumResult = getStringExtra("Available_Potassium", "");
         recommendationInfo.pH = getStringExtra("pH", "");
 
 //        recommendationInfo.nitrogenResult = "1";
@@ -489,7 +489,7 @@ public class RecommendActivity extends BaseActivity {
 
         for (int i = 0; i < testInfo.getResults().size(); i++) {
             Result result = testInfo.getResults().get(i);
-            resultIntent.putExtra(result.getName().replace(" ", "_")
+            resultIntent.putExtra(result.getName().trim().replace(" ", "_")
                     + testInfo.getResultSuffix(), values[i + startIndex]);
 
             results.append(result.getId(), result.getResult());
@@ -558,7 +558,6 @@ public class RecommendActivity extends BaseActivity {
                 return false;
             }
 
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onPageFinished(WebView view, String url) {
                 createWebPrintJob(view);
@@ -583,9 +582,6 @@ public class RecommendActivity extends BaseActivity {
         if (value == null) {
             return defaultValue;
         }
-
-        value = value.replace(">", "")
-                .replace("<", "").replace(" ", "");
 
         return value;
     }
