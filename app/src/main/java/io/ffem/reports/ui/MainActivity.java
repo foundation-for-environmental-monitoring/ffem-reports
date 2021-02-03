@@ -22,7 +22,6 @@ package io.ffem.reports.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
@@ -81,12 +80,7 @@ public class MainActivity extends BaseActivity {
 
     private void closeApp(int delay) {
         (new Handler()).postDelayed(() -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                finishAndRemoveTask();
-            } else {
-                int pid = android.os.Process.myPid();
-                android.os.Process.killProcess(pid);
-            }
+            finishAndRemoveTask();
         }, delay);
     }
 

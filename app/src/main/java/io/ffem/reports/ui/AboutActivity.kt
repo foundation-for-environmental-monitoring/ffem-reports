@@ -16,47 +16,50 @@
  * You should have received a copy of the GNU General Public License
  * along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
  */
+package io.ffem.reports.ui
 
-package io.ffem.reports.ui;
-
-import android.os.Bundle;
-import android.view.View;
-
-import androidx.databinding.DataBindingUtil;
-import io.ffem.reports.R;
-import io.ffem.reports.databinding.ActivityAboutBinding;
-import io.ffem.reports.util.ApiUtil;
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import io.ffem.reports.R
+import io.ffem.reports.databinding.ActivityAboutBinding
+import io.ffem.reports.helper.ApkHelper.isTestDevice
+import io.ffem.reports.util.ApiUtil
 
 /**
  * Activity to display info about the app.
  */
-public class AboutActivity extends BaseActivity {
+class AboutActivity : BaseActivity() {
+    private lateinit var binding: ActivityAboutBinding
 
-    private ActivityAboutBinding b;
-    private NoticesDialogFragment dialog;
+    private var dialog: NoticesDialogFragment? = null
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityAboutBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-        b = ActivityAboutBinding.inflate(getLayoutInflater());
+        binding.textVersion.text = ApiUtil.getAppVersion(this)
 
-        b.textVersion.setText(ApiUtil.getAppVersion(this));
-
-        setTitle(R.string.about);
+        setTitle(R.string.about)
     }
 
     /**
      * Displays legal information.
      */
-    public void onSoftwareNoticesClick(View view) {
-        dialog = NoticesDialogFragment.newInstance();
-        dialog.show(getFragmentManager(), "NoticesDialog");
+    fun onSoftwareNoticesClick(@Suppress("UNUSED_PARAMETER") view: View) {
+        if (!isTestDevice(this)) {
+            dialog = NoticesDialogFragment.newInstance()
+            dialog!!.show(supportFragmentManager, "NoticesDialog")
+        }
     }
 
-    public void onHomeClick(View view) {
-        if (dialog != null) {
-            dialog.dismiss();
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            onBackPressed()
+            return true
         }
+        return super.onOptionsItemSelected(item)
     }
 }

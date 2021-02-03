@@ -16,67 +16,84 @@
  * You should have received a copy of the GNU General Public License
  * along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
  */
+package io.ffem.reports.ui
 
-package io.ffem.reports.ui;
+import android.os.Bundle
+import android.text.method.LinkMovementMethod
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
+import io.ffem.reports.R
+import io.ffem.reports.databinding.FragmentNoticesDialogBinding
 
-import android.app.DialogFragment;
-import android.app.Fragment;
-import android.os.Bundle;
-import android.text.method.LinkMovementMethod;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.TextView;
+class NoticesDialogFragment : DialogFragment() {
+    private var _binding: FragmentNoticesDialogBinding? = null
+    private val binding get() = _binding!!
 
-import io.ffem.reports.R;
-
-/**
- * A simple {@link Fragment} subclass.
- */
-public class NoticesDialogFragment extends DialogFragment {
-
-    public static NoticesDialogFragment newInstance() {
-        return new NoticesDialogFragment();
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NO_TITLE, 0)
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setStyle(STYLE_NO_TITLE, 0);
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentNoticesDialogBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_notices_dialog, container, false);
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        makeEverythingClickable(binding.aboutContainer)
 
-        makeEverythingClickable(view.findViewById(R.id.about_container));
-
-        return view;
+        binding.homeButton.setOnClickListener { dismiss() }
+        super.onViewCreated(view, savedInstanceState)
     }
 
-    private void makeEverythingClickable(ViewGroup vg) {
-        for (int i = 0; i < vg.getChildCount(); i++) {
-            if (vg.getChildAt(i) instanceof ViewGroup) {
-                makeEverythingClickable((ViewGroup) vg.getChildAt(i));
-            } else if (vg.getChildAt(i) instanceof TextView) {
-                TextView tv = (TextView) vg.getChildAt(i);
-                tv.setLinkTextColor(getResources().getColor(R.color.accent));
-                tv.setMovementMethod(LinkMovementMethod.getInstance());
+    private fun makeEverythingClickable(vg: ViewGroup) {
+        for (i in 0 until vg.childCount) {
+            if (vg.getChildAt(i) is ViewGroup) {
+                makeEverythingClickable(vg.getChildAt(i) as ViewGroup)
+            } else if (vg.getChildAt(i) is TextView) {
+                val tv = vg.getChildAt(i) as TextView
+                if (tv.isClickable) {
+                    tv.setLinkTextColor(
+                            ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.link_text
+                            )
+                    )
+                    tv.movementMethod = LinkMovementMethod.getInstance()
+                }
             }
         }
     }
 
-    @Override
-    public void onResume() {
-        if (getDialog().getWindow() != null) {
-            WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
-            params.width = WindowManager.LayoutParams.MATCH_PARENT;
-            params.height = WindowManager.LayoutParams.MATCH_PARENT;
-            getDialog().getWindow().setAttributes(params);
+    override fun onResume() {
+        if (dialog!!.window != null) {
+            val params = dialog!!.window!!.attributes
+            params.width = WindowManager.LayoutParams.MATCH_PARENT
+            params.height = WindowManager.LayoutParams.MATCH_PARENT
+            dialog!!.window!!.attributes = params
         }
 
-        super.onResume();
+        super.onResume()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+
+        fun newInstance(): NoticesDialogFragment {
+            return NoticesDialogFragment()
+        }
     }
 }

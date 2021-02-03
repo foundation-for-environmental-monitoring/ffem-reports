@@ -16,146 +16,110 @@
  * You should have received a copy of the GNU General Public License
  * along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
  */
+package io.ffem.reports.ui
 
-package io.ffem.reports.ui;
-
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.TypedValue;
-import android.view.WindowManager;
-import android.widget.TextView;
-
-import java.lang.reflect.Field;
-import java.util.Objects;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import io.ffem.reports.ConstantKey;
-import io.ffem.reports.R;
-import io.ffem.reports.util.ApiUtil;
-import io.ffem.reports.util.PreferencesUtil;
+import android.graphics.drawable.ColorDrawable
+import android.os.Bundle
+import android.util.TypedValue
+import android.view.WindowManager
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import io.ffem.reports.ConstantKey
+import io.ffem.reports.R
+import io.ffem.reports.util.ApiUtil
+import io.ffem.reports.util.PreferencesUtil
+import java.util.*
+import kotlin.math.min
 
 /**
  * The base activity with common functions.
  */
-public abstract class BaseActivity extends AppCompatActivity {
-
-    private int appTheme = R.style.AppTheme_Main;
-    private String mTitle;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        int appThemeResId = -1;
-        Bundle bundle = getIntent().getExtras();
+abstract class BaseActivity : AppCompatActivity() {
+    private var appTheme = R.style.AppTheme_Main
+    private var mTitle: String? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        var appThemeResId = -1
+        val bundle = intent.extras
         if (bundle != null) {
             try {
-                String theme = bundle.getString("theme");
+                var theme = bundle.getString("theme")
                 if (theme != null) {
-                    theme = String.valueOf(theme.charAt(0)).toUpperCase() +
-                            theme.substring(1, Math.min(theme.length(), 10)).toLowerCase();
-                    appThemeResId = getThemeResourceId(theme);
-
-                    String packageName = Objects.requireNonNull(getCallingActivity()).getPackageName();
-
-                    PreferencesUtil.setString(this, ConstantKey.APP_THEME, theme);
-                    PreferencesUtil.setString(this, theme, packageName);
+                    theme = theme[0].toString().toUpperCase(Locale.ROOT) +
+                            theme.substring(1, min(theme.length, 10)).toLowerCase(Locale.ROOT)
+                    appThemeResId = ApiUtil.getThemeResourceId(theme)
+                    val packageName = callingActivity?.packageName
+                    PreferencesUtil.setString(this, ConstantKey.APP_THEME, theme)
+                    PreferencesUtil.setString(this, theme, packageName)
                 }
-            } catch (Exception ignored) {
+            } catch (ignored: Exception) {
             }
         }
-
         if (appThemeResId == -1) {
-            String theme = PreferencesUtil.getString(this, ConstantKey.APP_THEME, "");
-            if (!theme.isEmpty()) {
-                String packageName = PreferencesUtil.getString(this, theme, "");
-                if (!packageName.isEmpty() && ApiUtil.isAppInstalled(this, packageName)) {
-                    appThemeResId = getThemeResourceId(theme);
+            val theme = PreferencesUtil.getString(this, ConstantKey.APP_THEME, "")
+            if (theme.isNotEmpty()) {
+                val packageName = PreferencesUtil.getString(this, theme, "")
+                if (packageName.isNotEmpty() && ApiUtil.isAppInstalled(this, packageName)) {
+                    appThemeResId = ApiUtil.getThemeResourceId(theme)
                 }
             }
         }
-
         if (appThemeResId != -1) {
-            appTheme = appThemeResId;
+            appTheme = appThemeResId
         }
-
-        updateTheme();
+        updateTheme()
     }
 
-    private int getThemeResourceId(String theme) {
-        int resourceId = -1;
-        try {
-            Class res = R.style.class;
-            Field field = res.getField("AppTheme_" + theme);
-            resourceId = field.getInt(null);
-
-        } catch (Exception ignored) {
-        }
-
-        return resourceId;
+    private fun updateTheme() {
+        setTheme(appTheme)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)
+        val windowBackground = typedValue.data
+        window.setBackgroundDrawable(ColorDrawable(windowBackground))
     }
 
-    private void updateTheme() {
-
-        setTheme(appTheme);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        }
-
-        TypedValue typedValue = new TypedValue();
-        getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
-        int windowBackground = typedValue.data;
-        getWindow().setBackgroundDrawable(new ColorDrawable(windowBackground));
-
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         if (toolbar != null) {
             try {
-                setSupportActionBar(toolbar);
-            } catch (Exception ignored) {
+                setSupportActionBar(toolbar)
+            } catch (ignored: Exception) {
                 // do nothing
             }
         }
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
+        if (supportActionBar != null) {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            supportActionBar!!.title = ""
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("");
+    override fun onResume() {
+        super.onResume()
+        if (supportActionBar != null) {
+            supportActionBar!!.title = ""
         }
 
-        setTitle(mTitle);
-    }
-
-    @Override
-    public void setTitle(CharSequence title) {
-        TextView textTitle = findViewById(R.id.textToolbarTitle);
-        if (textTitle != null && title != null) {
-            mTitle = title.toString();
-            textTitle.setText(title);
+        if (mTitle != null) {
+            title = mTitle
         }
     }
 
-    @Override
-    public void setTitle(int titleId) {
-        TextView textTitle = findViewById(R.id.textToolbarTitle);
+    override fun setTitle(title: CharSequence) {
+        val textTitle = findViewById<TextView>(R.id.textToolbarTitle)
+        if (textTitle != null) {
+            mTitle = title.toString()
+            textTitle.text = title
+        }
+    }
+
+    override fun setTitle(titleId: Int) {
+        val textTitle = findViewById<TextView>(R.id.textToolbarTitle)
         if (textTitle != null && titleId != 0) {
-            mTitle = getString(titleId);
-            textTitle.setText(titleId);
+            mTitle = getString(titleId)
+            textTitle.setText(titleId)
         }
     }
 }
-
-

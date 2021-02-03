@@ -4,12 +4,13 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import java.lang.reflect.Field;
+
 import io.ffem.reports.R;
 
 /**
  * Utility functions for api related actions.
  */
-@SuppressWarnings("deprecation")
 public final class ApiUtil {
 
     private ApiUtil() {
@@ -42,4 +43,16 @@ public final class ApiUtil {
         }
     }
 
+    public static int getThemeResourceId(String theme) {
+        int resourceId = -1;
+        try {
+            Class res = R.style.class;
+            Field field = res.getField("AppTheme_" + theme);
+            resourceId = field.getInt(null);
+
+        } catch (Exception ignored) {
+        }
+
+        return resourceId;
+    }
 }
