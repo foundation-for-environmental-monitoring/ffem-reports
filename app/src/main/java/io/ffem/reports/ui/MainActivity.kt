@@ -16,83 +16,77 @@
  * You should have received a copy of the GNU General Public License
  * along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
  */
+package io.ffem.reports.ui
 
-package io.ffem.reports.ui;
+import android.app.AlertDialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import io.ffem.reports.R
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-import android.app.AlertDialog;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-
-import androidx.databinding.DataBindingUtil;
-
-import io.ffem.reports.R;
-
-public class MainActivity extends BaseActivity {
-
-    private static final String EXTERNAL_APP_PACKAGE_NAME = "io.ffem.collect";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        DataBindingUtil.setContentView(this, R.layout.activity_main);
-
-        setTitle(R.string.app_name);
+class MainActivity : BaseActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        DataBindingUtil.setContentView<ViewDataBinding>(this, R.layout.activity_main)
+        setTitle(R.string.app_name)
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (supportActionBar != null) {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(false)
         }
     }
 
-    public void onOkClicked(View view) {
-        Intent intent = getPackageManager()
-                .getLaunchIntentForPackage(EXTERNAL_APP_PACKAGE_NAME);
+    fun onOkClicked(@Suppress("UNUSED_PARAMETER") view: View?) {
+        val intent = packageManager
+                .getLaunchIntentForPackage(EXTERNAL_APP_PACKAGE_NAME)
         if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            closeApp(1000);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(intent)
+            GlobalScope.launch {
+                delay(1000)
+            }
         } else {
-            alertDependantAppNotFound();
+            alertDependantAppNotFound()
         }
     }
 
-    private void alertDependantAppNotFound() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog);
+    private fun alertDependantAppNotFound() {
+        val builder = AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog)
         builder.setTitle(R.string.app_not_found)
                 .setMessage(R.string.install_app)
-                .setPositiveButton(R.string.go_to_play_store, (dialogInterface, i1)
-                        -> startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://play.google.com/store/apps/developer?id=Foundation+for+Environmental+Monitoring"))))
-                .setNegativeButton(android.R.string.cancel,
-                        (dialogInterface, i1) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.go_to_play_store) { _: DialogInterface?, _: Int ->
+                    startActivity(Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://play.google.com/store/apps/developer?id=Foundation+for+Environmental+Monitoring")))
+                }
+                .setNegativeButton(android.R.string.cancel
+                ) { dialogInterface: DialogInterface, _: Int -> dialogInterface.dismiss() }
                 .setCancelable(false)
-                .show();
+                .show()
     }
 
-    private void closeApp(int delay) {
-        (new Handler()).postDelayed(() -> {
-            finishAndRemoveTask();
-        }, delay);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
     }
 
-    public void onInfoClick(MenuItem item) {
-        final Intent intent = new Intent(getBaseContext(), AboutActivity.class);
-        startActivity(intent);
+    fun onInfoClick(@Suppress("UNUSED_PARAMETER") item: MenuItem?) {
+        val intent = Intent(baseContext, AboutActivity::class.java)
+        startActivity(intent)
+    }
+
+    companion object {
+        private const val EXTERNAL_APP_PACKAGE_NAME = "io.ffem.collect"
     }
 }

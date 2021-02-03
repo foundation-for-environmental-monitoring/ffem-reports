@@ -16,171 +16,134 @@
  * You should have received a copy of the GNU General Public License
  * along with ffem Reports. If not, see <http://www.gnu.org/licenses/>.
  */
+package io.ffem.reports.ui
 
-package io.ffem.reports.ui;
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.ProgressDialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Bitmap
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.util.SparseArray
+import android.view.View
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.lifecycle.ViewModelProvider
+import io.ffem.reports.R
+import io.ffem.reports.RecommendationFragment
+import io.ffem.reports.WaterReportFragment
+import io.ffem.reports.common.SensorConstants
+import io.ffem.reports.model.RecommendationInfo
+import io.ffem.reports.model.TestInfo
+import io.ffem.reports.util.AlertUtil.showAlert
+import io.ffem.reports.util.AssetsManager.Companion.getInstance
+import io.ffem.reports.viewmodel.TestListViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.regex.Pattern
 
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
-import android.print.PrintManager;
-import android.util.SparseArray;
-import android.view.View;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Toast;
-
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModelProviders;
-
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import io.ffem.reports.R;
-import io.ffem.reports.RecommendationFragment;
-import io.ffem.reports.WaterReportFragment;
-import io.ffem.reports.common.SensorConstants;
-import io.ffem.reports.model.RecommendationInfo;
-import io.ffem.reports.model.Result;
-import io.ffem.reports.model.TestInfo;
-import io.ffem.reports.util.AlertUtil;
-import io.ffem.reports.util.AssetsManager;
-import io.ffem.reports.viewmodel.TestListViewModel;
-
-public class RecommendActivity extends BaseActivity {
-
-    private static final String MESSAGE_TWO_LINE_FORMAT = "%s%n%n%s";
-
-    private static final String DATE_TIME_FORMAT = "dd MMM yyyy HH:mm";
-    private static final String DATE_FORMAT = "dd MMM yyyy";
-    private static final String url = "https://soilhealth.dac.gov.in/calculator/calculator";
-
-    private final Activity activity = this;
-    private final RecommendationInfo recommendationInfo = new RecommendationInfo();
+class RecommendActivity : BaseActivity() {
+    private val activity: Activity = this
+    private val recommendationInfo = RecommendationInfo()
 
     //    private final WaterTestInfo waterTestInfo = new WaterTestInfo();
-    boolean timeout = true;
-    private TestInfo testInfo;
-    private String printTemplate;
-    private String date;
-    private String uuid;
-    private RecommendationFragment recommendationFragment;
-
-    public static boolean isNumeric(String strNum) {
-        try {
-            Double.parseDouble(strNum);
-        } catch (NumberFormatException | NullPointerException nfe) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recommend);
-
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        getTestSelectedByExternalApp(getIntent());
+    var timeout = true
+    private var testInfo: TestInfo? = null
+    private var printTemplate: String? = null
+    private var date: String? = null
+    private var uuid: String? = null
+    private var recommendationFragment: RecommendationFragment? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_recommend)
+        val fragmentManager = supportFragmentManager
+        getTestSelectedByExternalApp(intent)
 
 //        if (testInfo.getSubtype() == API) {
 //            sendDummyResultForDebugging();
 //            finish();
 //        }
-
-        if ("ff51c68c-faec-49e9-87b4-0880684be446".equals(uuid)) {
-            setTitle("Water Test Report");
-            WaterReportFragment waterReportFragment = WaterReportFragment.newInstance("", "");
+        if ("ff51c68c-faec-49e9-87b4-0880684be446" == uuid) {
+            title = "Water Test Report"
+            val waterReportFragment = WaterReportFragment.newInstance("", "")
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_container, waterReportFragment,
-                            WaterReportFragment.class.getSimpleName()).commit();
-            printTemplate = AssetsManager.getInstance(this)
-                    .loadJsonFromAsset("templates/water_test_template.html");
+                            WaterReportFragment::class.java.simpleName).commit()
+            printTemplate = getInstance(this)!!
+                    .loadJsonFromAsset("templates/water_test_template.html")
         } else {
-            setTitle("Fertilizer Recommendation");
-            recommendationFragment = RecommendationFragment.newInstance("", "");
+            title = "Fertilizer Recommendation"
+            recommendationFragment = RecommendationFragment.newInstance("", "")
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, recommendationFragment,
-                            RecommendationFragment.class.getSimpleName()).commit();
-            printTemplate = AssetsManager.getInstance(this)
-                    .loadJsonFromAsset("templates/recommendation_template.html");
-            getRecommendation();
+                    .add(R.id.fragment_container, recommendationFragment!!,
+                            RecommendationFragment::class.java.simpleName).commit()
+            printTemplate = getInstance(this)!!
+                    .loadJsonFromAsset("templates/recommendation_template.html")
+            recommendation
         }
     }
 
-//    @Override
-//    public void onAttachFragment(Fragment fragment) {
-//        super.onAttachFragment(fragment);
-//
-//        switch (uuid) {
-//            case "ff51c68c-faec-49e9-87b4-0880684be446":
-//                if (getWaterReport()) {
-//                    prepareWaterTestPrintDocument();
-//                }
-//                break;
-//            default:
-//                getRecommendation();
-//        }
-//    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    //    @Override
+    //    public void onAttachFragment(Fragment fragment) {
+    //        super.onAttachFragment(fragment);
+    //
+    //        switch (uuid) {
+    //            case "ff51c68c-faec-49e9-87b4-0880684be446":
+    //                if (getWaterReport()) {
+    //                    prepareWaterTestPrintDocument();
+    //                }
+    //                break;
+    //            default:
+    //                getRecommendation();
+    //        }
+    //    }
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (supportActionBar != null) {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(false)
         }
     }
 
-    private void getTestSelectedByExternalApp(Intent intent) {
-
-        uuid = intent.getStringExtra(SensorConstants.TEST_ID);
+    private fun getTestSelectedByExternalApp(intent: Intent) {
+        uuid = intent.getStringExtra(SensorConstants.TEST_ID)
         if (uuid != null) {
-            final TestListViewModel viewModel =
-                    ViewModelProviders.of(this).get(TestListViewModel.class);
-            testInfo = viewModel.getTestInfo(uuid);
-
-            if (testInfo != null && intent.getExtras() != null) {
-                for (int i = 0; i < intent.getExtras().keySet().size(); i++) {
-                    String code = Objects.requireNonNull(intent.getExtras().keySet().toArray())[i].toString();
-                    if (!code.equals(SensorConstants.TEST_ID) && !code.contains("__")) {
-                        Pattern pattern = Pattern.compile("_(\\d*?)$");
-                        Matcher matcher = pattern.matcher(code);
+            val viewModel = ViewModelProvider(this).get(
+                    TestListViewModel::class.java
+            )
+            testInfo = viewModel.getTestInfo(uuid)
+            if (testInfo != null && intent.extras != null) {
+                for (i in intent.extras!!.keySet().indices) {
+                    val code = Objects.requireNonNull<Array<Any>>(intent.extras!!.keySet().toTypedArray())[i].toString()
+                    if (code != SensorConstants.TEST_ID && !code.contains("__")) {
+                        val pattern = Pattern.compile("_(\\d*?)$")
+                        val matcher = pattern.matcher(code)
                         if (matcher.find()) {
-                            testInfo.setResultSuffix(matcher.group(0));
+                            testInfo!!.resultSuffix = matcher.group(0)
                         } else if (code.contains("_x")) {
-                            testInfo.setResultSuffix(code.substring(code.indexOf("_x")));
+                            testInfo!!.resultSuffix = code.substring(code.indexOf("_x"))
                         }
                     }
                 }
             }
         }
-
         if (testInfo == null) {
-            setTitle(R.string.notFound);
-            alertTestTypeNotSupported();
+            setTitle(R.string.notFound)
+            alertTestTypeNotSupported()
         }
     }
-
     /*
     private boolean getWaterReport() {
         waterTestInfo.testerName = getStringExtra("Tester name");
@@ -261,328 +224,304 @@ public class RecommendActivity extends BaseActivity {
         printTemplate = printTemplate.replaceAll("#.*?#", "");
     }
     */
-
     /**
      * Alert displayed when an unsupported contaminant test type was requested.
      */
-    private void alertTestTypeNotSupported() {
-
-        String message = getString(R.string.errorTestNotAvailable);
-        message = String.format(MESSAGE_TWO_LINE_FORMAT, message, getString(R.string.pleaseContactSupport));
-
-        AlertUtil.showAlert(this, R.string.cannotStartTest, message,
+    private fun alertTestTypeNotSupported() {
+        var message = getString(R.string.errorTestNotAvailable)
+        message = String.format(MESSAGE_TWO_LINE_FORMAT, message, getString(R.string.pleaseContactSupport))
+        showAlert(this, R.string.cannotStartTest, message,
                 R.string.ok,
-                (dialogInterface, i) -> {
-                    dialogInterface.dismiss();
-                    finish();
+                { dialogInterface: DialogInterface, _: Int ->
+                    dialogInterface.dismiss()
+                    finish()
                 }, null,
-                dialogInterface -> {
-                    dialogInterface.dismiss();
-                    finish();
+                { dialogInterface: DialogInterface ->
+                    dialogInterface.dismiss()
+                    finish()
                 }
-        );
+        )
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void createWebPrintJob(WebView webView) {
-
-        PrintManager printManager = (PrintManager) this
-                .getSystemService(Context.PRINT_SERVICE);
-
-        String jobName = "Fertilizer Recommendation - " + date;
-
-        PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
+    private fun createWebPrintJob(webView: WebView) {
+        val printManager = this
+                .getSystemService(PRINT_SERVICE) as PrintManager
+        val jobName = "Fertilizer Recommendation - $date"
+        val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
 //        PrintAttributes attrib = new PrintAttributes.Builder()
 //                .setMediaSize(PrintAttributes.MediaSize.UNKNOWN_LANDSCAPE)
 //                . build();
+        printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
+    }// Redirect to deprecated method, so you can use it in all SDK versions
 
-        printManager.print(jobName, printAdapter, new PrintAttributes.Builder().build());
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private void getRecommendation() {
-
-        ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage(getString(R.string.just_a_moment));
-        pd.setCancelable(false);
-        pd.show();
-
-        WebView webView = new WebView(this);
-
-        webView.getSettings().setJavaScriptEnabled(true);
-
-        String state = getStringExtra("State");
-        String district = getStringExtra("District");
-        String cropGroup = getStringExtra("Crop_Group");
-        recommendationInfo.farmerName = getStringExtra("Farmer_name");
-        recommendationInfo.phoneNumber = getStringExtra("Phone_number");
-        recommendationInfo.sampleNumber = getStringExtra("Sample_number");
-        recommendationInfo.villageName = getStringExtra("Village_name");
-        recommendationInfo.geoLocation = getStringExtra("Geolocation");
-
-        String crop = getIntent().getStringExtra("Crop");
-        String soilType = getIntent().getStringExtra("Soil_Type");
-        String varietyCode = getIntent().getStringExtra("Variety");
-        String seasonCode = getIntent().getStringExtra("Season");
-
-        if (recommendationInfo.farmerName.isEmpty() || recommendationInfo.sampleNumber.isEmpty() ||
-                state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop.isEmpty()) {
-            Toast.makeText(this, R.string.error_values_not_filled,
-                    Toast.LENGTH_LONG).show();
-            pd.dismiss();
-            finish();
-            return;
-        }
-
-        recommendationInfo.nitrogenResult = getStringExtra("Available_Nitrogen", "");
-        recommendationInfo.phosphorusResult = getStringExtra("Available_Phosphorous", "");
-        recommendationInfo.potassiumResult = getStringExtra("Available_Potassium", "");
-        recommendationInfo.pH = getStringExtra("pH", "");
+    //        recommendationInfo.nitrogenResult = "1";
+//        recommendationInfo.phosphorusResult = "1";
+//        recommendationInfo.potassiumResult = "1";
+    @get:SuppressLint("SetJavaScriptEnabled")
+    private val recommendation: Unit
+        get() {
+            val pd = ProgressDialog(this)
+            pd.setMessage(getString(R.string.just_a_moment))
+            pd.setCancelable(false)
+            pd.show()
+            val webView = WebView(this)
+            webView.settings.javaScriptEnabled = true
+            val state = getStringExtra("State")
+            val district = getStringExtra("District")
+            val cropGroup = getStringExtra("Crop_Group")
+            recommendationInfo.farmerName = getStringExtra("Farmer_name")
+            recommendationInfo.phoneNumber = getStringExtra("Phone_number")
+            recommendationInfo.sampleNumber = getStringExtra("Sample_number")
+            recommendationInfo.villageName = getStringExtra("Village_name")
+            recommendationInfo.geoLocation = getStringExtra("Geolocation")
+            val crop = intent.getStringExtra("Crop")
+            val soilType = intent.getStringExtra("Soil_Type")
+            val varietyCode = intent.getStringExtra("Variety")
+            val seasonCode = intent.getStringExtra("Season")
+            if (recommendationInfo.farmerName.isEmpty() || recommendationInfo.sampleNumber.isEmpty() ||
+                    state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()) {
+                Toast.makeText(this, R.string.error_values_not_filled,
+                        Toast.LENGTH_LONG).show()
+                pd.dismiss()
+                finish()
+                return
+            }
+            recommendationInfo.nitrogenResult = getStringExtra("Available_Nitrogen", "")
+            recommendationInfo.phosphorusResult = getStringExtra("Available_Phosphorous", "")
+            recommendationInfo.potassiumResult = getStringExtra("Available_Potassium", "")
+            recommendationInfo.pH = getStringExtra("pH", "")
 
 //        recommendationInfo.nitrogenResult = "1";
 //        recommendationInfo.phosphorusResult = "1";
 //        recommendationInfo.potassiumResult = "1";
-
-        if (recommendationInfo.nitrogenResult.isEmpty() || recommendationInfo.phosphorusResult.isEmpty() ||
-                recommendationInfo.potassiumResult.isEmpty()) {
-            Toast.makeText(this,
-                    "All tests have to be completed before requesting a recommendation",
-                    Toast.LENGTH_LONG).show();
-            pd.dismiss();
-            finish();
-            return;
-        }
-
-        final String js = "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
-                "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
-                "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
-                "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
-                "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
-                "document.getElementsByClassName('myButton')[0].click();" +
-                "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
-                "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
-                "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
-                "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
-                "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
-                "javascript:document.getElementById('AddCrop').click();" +
-                "(function() { " +
-                "return " +
-                "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
-                "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
-                "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
-                "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
-                "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
-                "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
-                "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
-                "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
-                "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
-                "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
-                "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
-                "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
-                "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
-                "})();";
-
-        Runnable run = () -> {
-            if (timeout) {
-                pd.dismiss();
-                webView.stopLoading();
-                finish();
-                Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show();
+            if (recommendationInfo.nitrogenResult.isEmpty() || recommendationInfo.phosphorusResult.isEmpty() ||
+                    recommendationInfo.potassiumResult.isEmpty()) {
+                Toast.makeText(this,
+                        "All tests have to be completed before requesting a recommendation",
+                        Toast.LENGTH_LONG).show()
+                pd.dismiss()
+                finish()
+                return
             }
-        };
-        Handler myHandler = new Handler(Looper.myLooper());
-        myHandler.postDelayed(run, 20000);
-
-        webView.setWebViewClient(new WebViewClient() {
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-            }
-
-            @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                if (description.contains("ERR_INTERNET")) {
-                    Toast.makeText(activity,
-                            getString(R.string.no_data_connection),
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
+            val js = "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
+                    "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
+                    "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
+                    "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
+                    "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
+                    "document.getElementsByClassName('myButton')[0].click();" +
+                    "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
+                    "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
+                    "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
+                    "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
+                    "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
+                    "javascript:document.getElementById('AddCrop').click();" +
+                    "(function() { " +
+                    "return " +
+                    "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
+                    "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
+                    "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
+                    "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
+                    "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
+                    "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
+                    "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
+                    "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
+                    "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
+                    "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
+                    "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
+                    "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
+                    "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
+                    "})();"
+            val run = Runnable {
+                if (timeout) {
+                    pd.dismiss()
+                    webView.stopLoading()
+                    finish()
+                    Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show()
                 }
-                timeout = false;
-                pd.dismiss();
-                finish();
             }
+            val myHandler = Handler(Looper.myLooper()!!)
+            myHandler.postDelayed(run, 20000)
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap) {
+                    super.onPageStarted(view, url, favicon)
+                }
 
-            @TargetApi(Build.VERSION_CODES.M)
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError error) {
-                // Redirect to deprecated method, so you can use it in all SDK versions
-                onReceivedError(view, error.getErrorCode(), error.getDescription().toString(), req.getUrl().toString());
-            }
+                override fun onReceivedError(view: WebView, errorCode: Int, description: String, failingUrl: String) {
+                    if (description.contains("ERR_INTERNET")) {
+                        Toast.makeText(activity,
+                                getString(R.string.no_data_connection),
+                                Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(activity, description, Toast.LENGTH_SHORT).show()
+                    }
+                    timeout = false
+                    pd.dismiss()
+                    finish()
+                }
 
-            public void onPageFinished(WebView view, String url) {
+                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    super.onReceivedError(view, request, error)
+                }
 
-                view.evaluateJavascript(js, s -> {
+//                @TargetApi(Build.VERSION_CODES.M)
+//                override fun onReceivedError(view: WebView, req: WebResourceRequest, error: WebResourceError) {
+//                    // Redirect to deprecated method, so you can use it in all SDK versions
+//                    onReceivedError(view, error.errorCode, error.description.toString(), req.url.toString())
+//                }
 
-                    String[] values = s.replace("\"", "").split(",");
-                    if (values.length > 10) {
-                        timeout = false;
-
-                        if (s.contains("NaN")) {
-                            returnEmptyResult(pd);
-
-                        } else {
-                            if (!displayResult(values)) {
-                                returnEmptyResult(pd);
+                override fun onPageFinished(view: WebView, url: String) {
+                    view.evaluateJavascript(js) { s: String ->
+                        val values = s.replace("\"", "").split(",".toRegex()).toTypedArray()
+                        if (values.size > 10) {
+                            timeout = false
+                            if (s.contains("NaN")) {
+                                returnEmptyResult(pd)
+                            } else {
+                                if (!displayResult(values)) {
+                                    returnEmptyResult(pd)
+                                }
                             }
                         }
+                        GlobalScope.launch {
+                            delay(5000)
+                            pd.dismiss()
+                        }
                     }
-
-                    (new Handler()).postDelayed(pd::dismiss, 5000);
-                });
-            }
-        });
-
-        webView.loadUrl(url);
-    }
-
-    private void returnEmptyResult(ProgressDialog pd) {
-        Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show();
-        Intent resultIntent = new Intent();
-        SparseArray<String> results = new SparseArray<>();
-        for (int i = 0; i < testInfo.getResults().size(); i++) {
-            Result result = testInfo.getResults().get(i);
-            resultIntent.putExtra(result.getName().replace(" ", "_")
-                    + testInfo.getResultSuffix(), "");
-            results.append(result.getId(), "");
-        }
-        setResult(Activity.RESULT_OK, resultIntent);
-        pd.dismiss();
-        finish();
-    }
-
-    private boolean displayResult(String[] values) {
-
-        Intent resultIntent = new Intent();
-
-        SparseArray<String> results = new SparseArray<>();
-        recommendationInfo.state = values[0];
-        recommendationInfo.district = values[1];
-        recommendationInfo.crop = values[2];
-
-        int startIndex = 0;
-        for (int i = 3; i < values.length; i++) {
-            if (values[i].equals("NaN") || isNumeric(values[i])) {
-                startIndex = i - 1;
-                break;
-            }
-        }
-
-        double value = 0;
-
-        for (int i = 0; i < testInfo.getResults().size(); i++) {
-            Result result = testInfo.getResults().get(i);
-            resultIntent.putExtra(result.getName().trim().replace(" ", "_")
-                    + testInfo.getResultSuffix(), values[i + startIndex]);
-
-            results.append(result.getId(), result.getResult());
-
-            if ((i & 1) != 0) {
-                try {
-                    value += Double.parseDouble(values[i + startIndex]);
-                } catch (NumberFormatException | NullPointerException nfe) {
-                    value = 0;
                 }
             }
-
-            printTemplate = printTemplate.replace("#Value" + i + "#", values[i + startIndex]);
+            webView.loadUrl(url)
         }
 
-        if (value == 0) {
-            return false;
+    private fun returnEmptyResult(pd: ProgressDialog) {
+        Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show()
+        val resultIntent = Intent()
+        val results = SparseArray<String>()
+        for (i in testInfo!!.results.indices) {
+            val result = testInfo!!.results[i]
+            resultIntent.putExtra(result.name.replace(" ", "_")
+                    + testInfo!!.resultSuffix, "")
+            results.append(result.id, "")
         }
-
-        preparePrintDocument();
-
-        recommendationInfo.values = Arrays.copyOfRange(values, startIndex, values.length);
-
-        recommendationFragment.displayResult(recommendationInfo);
-
-        setResult(Activity.RESULT_OK, resultIntent);
-
-        return true;
+        setResult(RESULT_OK, resultIntent)
+        pd.dismiss()
+        finish()
     }
 
-    private void preparePrintDocument() {
-        date = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
-        printTemplate = printTemplate.replace("#DateTime#", date);
-        date = new SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().getTime());
-        printTemplate = printTemplate.replace("#Date#", date);
-        printTemplate = printTemplate.replace("#FarmerName#", recommendationInfo.farmerName);
-        printTemplate = printTemplate.replace("#PhoneNumber#", recommendationInfo.phoneNumber);
-        printTemplate = printTemplate.replace("#VillageName#", recommendationInfo.villageName);
-        printTemplate = printTemplate.replace("#State#", recommendationInfo.state);
-        printTemplate = printTemplate.replace("#District#", recommendationInfo.district);
-        printTemplate = printTemplate.replace("#SampleNumber#", recommendationInfo.sampleNumber);
-        printTemplate = printTemplate.replace("#Crop#", recommendationInfo.crop);
+    private fun displayResult(values: Array<String>): Boolean {
+        val resultIntent = Intent()
+        val results = SparseArray<String>()
+        recommendationInfo.state = values[0]
+        recommendationInfo.district = values[1]
+        recommendationInfo.crop = values[2]
+        var startIndex = 0
+        for (i in 3 until values.size) {
+            if (values[i] == "NaN" || isNumeric(values[i])) {
+                startIndex = i - 1
+                break
+            }
+        }
+        var value = 0.0
+        for (i in testInfo!!.results.indices) {
+            val result = testInfo!!.results[i]
+            resultIntent.putExtra(result.name.trim { it <= ' ' }.replace(" ", "_")
+                    + testInfo!!.resultSuffix, values[i + startIndex])
+            results.append(result.id, result.result)
+            if (i and 1 != 0) {
+                try {
+                    value += values[i + startIndex].toDouble()
+                } catch (nfe: NumberFormatException) {
+                    value = 0.0
+                } catch (nfe: NullPointerException) {
+                    value = 0.0
+                }
+            }
+            printTemplate = printTemplate!!.replace("#Value$i#", values[i + startIndex])
+        }
+        if (value == 0.0) {
+            return false
+        }
+        preparePrintDocument()
+        recommendationInfo.values = values.copyOfRange(startIndex, values.size)
+        recommendationFragment!!.displayResult(recommendationInfo)
+        setResult(RESULT_OK, resultIntent)
+        return true
+    }
 
-        if (recommendationInfo.geoLocation != null && !recommendationInfo.geoLocation.isEmpty()) {
-            String[] geoValues = recommendationInfo.geoLocation.split(" ");
-            for (int i = 0; i < geoValues.length; i++) {
+    private fun preparePrintDocument() {
+        date = SimpleDateFormat(DATE_TIME_FORMAT, Locale.US).format(Calendar.getInstance().time)
+        printTemplate = printTemplate!!.replace("#DateTime#", date!!)
+        date = SimpleDateFormat(DATE_FORMAT, Locale.US).format(Calendar.getInstance().time)
+        printTemplate = printTemplate!!.replace("#Date#", date!!)
+        printTemplate = printTemplate!!.replace("#FarmerName#", recommendationInfo.farmerName)
+        printTemplate = printTemplate!!.replace("#PhoneNumber#", recommendationInfo.phoneNumber)
+        printTemplate = printTemplate!!.replace("#VillageName#", recommendationInfo.villageName)
+        printTemplate = printTemplate!!.replace("#State#", recommendationInfo.state)
+        printTemplate = printTemplate!!.replace("#District#", recommendationInfo.district)
+        printTemplate = printTemplate!!.replace("#SampleNumber#", recommendationInfo.sampleNumber)
+        printTemplate = printTemplate!!.replace("#Crop#", recommendationInfo.crop)
+        if (recommendationInfo.geoLocation != null && recommendationInfo.geoLocation.isNotEmpty()) {
+            val geoValues = recommendationInfo.geoLocation.split(" ".toRegex()).toTypedArray()
+            for (i in geoValues.indices) {
                 // Also show unit (m) for last two values
-                printTemplate = printTemplate.replace("#Geo" + i + "#",
-                        i > 1 ? geoValues[i] + "m" : geoValues[i]);
+                printTemplate = printTemplate!!.replace("#Geo$i#",
+                        if (i > 1) geoValues[i] + "m" else geoValues[i])
             }
         }
-
-        printTemplate = printTemplate.replace("#Nitrogen#", recommendationInfo.nitrogenResult);
-        printTemplate = printTemplate.replace("#Phosphorus#", recommendationInfo.phosphorusResult);
-        printTemplate = printTemplate.replace("#Potassium#", recommendationInfo.potassiumResult);
-        printTemplate = printTemplate.replace("#pH#", recommendationInfo.pH);
-
-        printTemplate = printTemplate.replaceAll("#.*?#", "");
+        printTemplate = printTemplate!!.replace("#Nitrogen#", recommendationInfo.nitrogenResult)
+        printTemplate = printTemplate!!.replace("#Phosphorus#", recommendationInfo.phosphorusResult)
+        printTemplate = printTemplate!!.replace("#Potassium#", recommendationInfo.potassiumResult)
+        printTemplate = printTemplate!!.replace("#pH#", recommendationInfo.pH)
+        printTemplate = printTemplate!!.replace("#.*?#".toRegex(), "")
     }
 
-    public void onPrintClick(View view) {
-        WebView printWebView = new WebView(this);
-        printWebView.setWebViewClient(new WebViewClient() {
-
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return false;
+    fun onPrintClick(@Suppress("UNUSED_PARAMETER") view: View?) {
+        val printWebView = WebView(this)
+        printWebView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                return false
             }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                createWebPrintJob(view);
+            override fun onPageFinished(view: WebView, url: String) {
+                createWebPrintJob(view)
             }
-        });
-
-        printWebView.loadDataWithBaseURL("file:///android_asset/images/", printTemplate,
-                "text/HTML", "UTF-8", null);
-    }
-
-    public void onSaveClick(View view) {
-        finish();
-    }
-
-    private String getStringExtra(String key) {
-        return getStringExtra(key, "");
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private String getStringExtra(String key, String defaultValue) {
-        String value = getIntent().getStringExtra(key);
-        if (value == null) {
-            return defaultValue;
         }
+        printWebView.loadDataWithBaseURL("file:///android_asset/images/", printTemplate!!,
+                "text/HTML", "UTF-8", null)
+    }
 
-        return value;
+    fun onSaveClick(@Suppress("UNUSED_PARAMETER") view: View?) {
+        finish()
+    }
+
+    private fun getStringExtra(key: String): String {
+        return getStringExtra(key, "")
+    }
+
+    private fun getStringExtra(key: String, defaultValue: String): String {
+        return intent.getStringExtra(key) ?: return defaultValue
+    }
+
+    companion object {
+        private const val MESSAGE_TWO_LINE_FORMAT = "%s%n%n%s"
+        private const val DATE_TIME_FORMAT = "dd MMM yyyy HH:mm"
+        private const val DATE_FORMAT = "dd MMM yyyy"
+        private const val url = "https://soilhealth.dac.gov.in/calculator/calculator"
+        fun isNumeric(strNum: String): Boolean {
+            try {
+                strNum.toDouble()
+            } catch (nfe: NumberFormatException) {
+                return false
+            } catch (nfe: NullPointerException) {
+                return false
+            }
+            return true
+        }
     }
 }

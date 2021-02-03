@@ -58,9 +58,9 @@ abstract class BaseActivity : AppCompatActivity() {
         }
         if (appThemeResId == -1) {
             val theme = PreferencesUtil.getString(this, ConstantKey.APP_THEME, "")
-            if (theme.isNotEmpty()) {
+            if (theme!!.isNotEmpty()) {
                 val packageName = PreferencesUtil.getString(this, theme, "")
-                if (packageName.isNotEmpty() && ApiUtil.isAppInstalled(this, packageName)) {
+                if (packageName!!.isNotEmpty() && ApiUtil.isAppInstalled(this, packageName)) {
                     appThemeResId = ApiUtil.getThemeResourceId(theme)
                 }
             }

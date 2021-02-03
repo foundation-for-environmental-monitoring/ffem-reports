@@ -1,58 +1,47 @@
-package io.ffem.reports.util;
+package io.ffem.reports.util
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-
-import java.lang.reflect.Field;
-
-import io.ffem.reports.R;
+import android.content.Context
+import android.content.pm.PackageManager
+import io.ffem.reports.R
+import io.ffem.reports.R.style
 
 /**
  * Utility functions for api related actions.
  */
-public final class ApiUtil {
-
-    private ApiUtil() {
-    }
-
+object ApiUtil {
     /**
      * Gets the app version.
      *
      * @return The version name and number
      */
-    public static String getAppVersion(Context context) {
-        String version = "";
+    fun getAppVersion(context: Context): String {
+        var version = ""
         try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-
-            version = String.format("%s %s", context.getString(R.string.version), packageInfo.versionName);
-
-        } catch (PackageManager.NameNotFoundException ignored) {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            version = String.format("%s %s", context.getString(R.string.version), packageInfo.versionName)
+        } catch (ignored: PackageManager.NameNotFoundException) {
             // do nothing
         }
-        return version;
+        return version
     }
 
-    public static boolean isAppInstalled(Context context, String packageName) {
-        try {
-            context.getPackageManager().getApplicationInfo(packageName, 0);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
+    fun isAppInstalled(context: Context, packageName: String?): Boolean {
+        return try {
+            context.packageManager.getApplicationInfo(packageName!!, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
         }
     }
 
-    public static int getThemeResourceId(String theme) {
-        int resourceId = -1;
+    fun getThemeResourceId(theme: String): Int {
+        var resourceId = -1
         try {
-            Class res = R.style.class;
-            Field field = res.getField("AppTheme_" + theme);
-            resourceId = field.getInt(null);
-
-        } catch (Exception ignored) {
+            val res: Class<*> = style::class.java
+            val field = res.getField("AppTheme_$theme")
+            resourceId = field.getInt(null)
+        } catch (ignored: Exception) {
         }
-
-        return resourceId;
+        return resourceId
     }
 }
