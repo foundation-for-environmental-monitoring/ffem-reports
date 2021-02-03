@@ -31,10 +31,12 @@
 -keepattributes *Annotation*
 
 # Gson specific classes
+#noinspection ShrinkerUnresolvedReference
 -keep class sun.misc.Unsafe { *; }
 #-keep class com.google.gson.stream.** { *; }
 
 # Application classes that will be serialized/deserialized over Gson
+#noinspection ShrinkerUnresolvedReference
 -keep class io.ffem.reports.model.** { *; }
 
 # Prevent proguard from stripping interface information from TypeAdapterFactory,

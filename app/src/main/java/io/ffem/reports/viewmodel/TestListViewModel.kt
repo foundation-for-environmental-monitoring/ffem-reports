@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.ffem.reports.viewmodel
 
-package io.ffem.reports.viewmodel;
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import io.ffem.reports.model.TestInfo
+import io.ffem.reports.repository.TestConfigRepository
 
-import android.app.Application;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
-import io.ffem.reports.model.TestInfo;
-import io.ffem.reports.repository.TestConfigRepository;
-
-public class TestListViewModel extends AndroidViewModel {
-
-    private final TestConfigRepository testConfigRepository;
-
-    public TestListViewModel(@NonNull Application application) {
-        super(application);
-        testConfigRepository = new TestConfigRepository(application);
+class TestListViewModel(application: Application) : AndroidViewModel(application) {
+    private val testConfigRepository: TestConfigRepository
+    fun getTestInfo(uuid: String?): TestInfo? {
+        return testConfigRepository.getTestInfo(uuid!!)
     }
 
-    public TestInfo getTestInfo(String uuid) {
-        return testConfigRepository.getTestInfo(uuid);
+    init {
+        testConfigRepository = TestConfigRepository(application)
     }
-
 }

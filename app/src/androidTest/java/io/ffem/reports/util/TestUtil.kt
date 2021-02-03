@@ -1,143 +1,113 @@
-package io.ffem.reports.util;
+package io.ffem.reports.util
 
-import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.widget.ScrollView;
-import android.widget.TextView;
-
-import androidx.test.uiautomator.By;
-import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObject2;
-import androidx.test.uiautomator.UiObjectNotFoundException;
-import androidx.test.uiautomator.UiScrollable;
-import androidx.test.uiautomator.UiSelector;
-
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-
-import timber.log.Timber;
-
-import static io.ffem.reports.util.TestHelper.clickExternalSourceButton;
-import static io.ffem.reports.util.TestHelper.mDevice;
+import android.content.Context
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.test.uiautomator.*
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.TypeSafeMatcher
+import timber.log.Timber
 
 /**
  * Utility functions for automated testing
  */
-public class TestUtil {
-
-    private TestUtil() {
-    }
-
-    public static void sleep(int time) {
+object TestUtil {
+    fun sleep(time: Int) {
         try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            Timber.e(e);
+            Thread.sleep(time.toLong())
+        } catch (e: InterruptedException) {
+            Timber.e(e)
         }
     }
 
-    @SuppressWarnings("SameParameterValue")
-    static void findButtonInScrollable(String name) {
-        UiScrollable listView = new UiScrollable(new UiSelector().className(ScrollView.class.getName()));
-        listView.setMaxSearchSwipes(10);
-        listView.waitForExists(5000);
+    fun findButtonInScrollable(name: String?) {
+        val listView = UiScrollable(UiSelector().className(ScrollView::class.java.name))
+        listView.maxSearchSwipes = 10
+        listView.waitForExists(5000)
         try {
-            listView.scrollTextIntoView(name);
-        } catch (Exception ignored) {
+            listView.scrollTextIntoView(name)
+        } catch (ignored: Exception) {
         }
     }
 
-    static boolean clickListViewItem(String name) {
-        UiScrollable listView = new UiScrollable(new UiSelector());
-        listView.setMaxSearchSwipes(4);
-        listView.waitForExists(3000);
-        UiObject listViewItem;
+    fun clickListViewItem(name: String) {
+        val listView = UiScrollable(UiSelector())
+        listView.maxSearchSwipes = 4
+        listView.waitForExists(3000)
+        val listViewItem: UiObject
         try {
             if (listView.scrollTextIntoView(name)) {
-                listViewItem = listView.getChildByText(new UiSelector()
-                        .className(TextView.class.getName()), "" + name + "");
-                listViewItem.click();
-            } else {
-                return false;
+                listViewItem = listView.getChildByText(UiSelector()
+                        .className(TextView::class.java.name), "" + name + "")
+                listViewItem.click()
             }
-        } catch (UiObjectNotFoundException e) {
-            return false;
-        }
-        return true;
-    }
-
-    private static void swipeLeft() {
-        mDevice.waitForIdle();
-        mDevice.swipe(500, 400, 50, 400, 4);
-        mDevice.waitForIdle();
-    }
-
-    private static void swipeDown() {
-        for (int i = 0; i < 3; i++) {
-            mDevice.waitForIdle();
-            mDevice.swipe(300, 400, 300, 750, 4);
+        } catch (ignored: UiObjectNotFoundException) {
         }
     }
 
-    public static Matcher<View> childAtPosition(
-            final Matcher<View> parentMatcher, final int position) {
+    private fun swipeLeft() {
+        TestHelper.mDevice!!.waitForIdle()
+        TestHelper.mDevice!!.swipe(500, 400, 50, 400, 4)
+        TestHelper.mDevice!!.waitForIdle()
+    }
 
-        return new TypeSafeMatcher<View>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Child at position " + position + " in parent ");
-                parentMatcher.describeTo(description);
+    private fun swipeDown() {
+        for (i in 0..2) {
+            TestHelper.mDevice!!.waitForIdle()
+            TestHelper.mDevice!!.swipe(300, 400, 300, 750, 4)
+        }
+    }
+
+    fun childAtPosition(
+            parentMatcher: Matcher<View?>, position: Int): Matcher<View> {
+        return object : TypeSafeMatcher<View>() {
+            override fun describeTo(description: Description) {
+                description.appendText("Child at position $position in parent ")
+                parentMatcher.describeTo(description)
             }
 
-            @Override
-            public boolean matchesSafely(View view) {
-                ViewParent parent = view.getParent();
-                return parent instanceof ViewGroup && parentMatcher.matches(parent)
-                        && view.equals(((ViewGroup) parent).getChildAt(position));
+            public override fun matchesSafely(view: View): Boolean {
+                val parent = view.parent
+                return (parent is ViewGroup && parentMatcher.matches(parent)
+                        && view == parent.getChildAt(position))
             }
-        };
+        }
     }
 
-    static void nextSurveyPage(Context context) {
-        clickExternalSourceButton(context, "Launch");
+    fun nextSurveyPage(context: Context) {
+        TestHelper.clickExternalSourceButton(context, "Launch")
     }
 
-    static void nextSurveyPage(int times) {
-        nextSurveyPage(times, "");
-    }
-
-    static void nextSurveyPage(int times, String tabName) {
-
-        UiObject2 tab = mDevice.findObject(By.text(tabName));
+    @JvmOverloads
+    fun nextSurveyPage(times: Int, tabName: String? = "") {
+        var tab = TestHelper.mDevice!!.findObject(By.text(tabName))
         if (tab == null) {
-            for (int i = 0; i < 12; i++) {
-                swipeLeft();
-                mDevice.waitForIdle();
-                tab = mDevice.findObject(By.text(tabName));
+            for (i in 0..11) {
+                swipeLeft()
+                TestHelper.mDevice!!.waitForIdle()
+                tab = TestHelper.mDevice!!.findObject(By.text(tabName))
                 if (tab != null) {
-                    break;
+                    break
                 }
-                tab = mDevice.findObject(By.text("Soil Tests 1"));
+                tab = TestHelper.mDevice!!.findObject(By.text("Soil Tests 1"))
                 if (tab != null) {
-                    for (int ii = 0; ii < times; ii++) {
-                        mDevice.waitForIdle();
-                        swipeLeft();
-                        sleep(300);
-                        tab = mDevice.findObject(By.text(tabName));
+                    for (ii in 0 until times) {
+                        TestHelper.mDevice!!.waitForIdle()
+                        swipeLeft()
+                        sleep(300)
+                        tab = TestHelper.mDevice!!.findObject(By.text(tabName))
                         if (tab != null) {
-                            break;
+                            break
                         }
                     }
-
-                    break;
+                    break
                 }
             }
         }
-
-        swipeDown();
-        mDevice.waitForIdle();
+        swipeDown()
+        TestHelper.mDevice!!.waitForIdle()
     }
 }

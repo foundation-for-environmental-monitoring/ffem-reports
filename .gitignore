@@ -12,7 +12,8 @@
 /captures
 .externalNativeBuild
 
-
-# IntelliJ files
-.idea
-*.iml
+# IntelliJ
+.idea/**
+!.idea
+!.idea/dictionaries/
+!.idea/dictionaries/common.xml

@@ -1,25 +1,14 @@
-package io.ffem.reports.repository;
+package io.ffem.reports.repository
 
+import android.app.Application
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
+import io.ffem.reports.model.TestConfig
+import io.ffem.reports.model.TestInfo
+import io.ffem.reports.util.AssetsManager
 
-import android.app.Application;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-
-import java.util.List;
-
-import androidx.annotation.Nullable;
-import io.ffem.reports.model.TestConfig;
-import io.ffem.reports.model.TestInfo;
-import io.ffem.reports.util.AssetsManager;
-
-public class TestConfigRepository {
-
-    private final AssetsManager assetsManager;
-
-    public TestConfigRepository(Application application) {
-        assetsManager = new AssetsManager(application);
-    }
+class TestConfigRepository(application: Application?) {
+    private val assetsManager: AssetsManager = AssetsManager(application!!)
 
     /**
      * Get the test details from json config.
@@ -27,35 +16,26 @@ public class TestConfigRepository {
      * @param id the test id
      * @return the test object
      */
-    public TestInfo getTestInfo(final String id) {
-
-        TestInfo testInfo;
-        testInfo = getTestInfoItem(assetsManager.getJson(), id);
-        if (testInfo != null) {
-            return testInfo;
-        }
-        return null;
+    fun getTestInfo(id: String): TestInfo? {
+        return getTestInfoItem(assetsManager.json, id)
     }
 
-    @Nullable
-    private TestInfo getTestInfoItem(String json, String id) {
-
-        List<TestInfo> testInfoList;
+    private fun getTestInfoItem(json: String?, id: String): TestInfo? {
+        val testInfoList: List<TestInfo>
         try {
-            TestConfig testConfig = new Gson().fromJson(json, TestConfig.class);
+            val testConfig = Gson().fromJson(json, TestConfig::class.java)
             if (testConfig != null) {
-                testInfoList = testConfig.getTests();
-
-                for (TestInfo testInfo : testInfoList) {
-                    if (testInfo.getUuid().equalsIgnoreCase(id)) {
-                        return testInfo;
+                testInfoList = testConfig.tests!!
+                for (testInfo in testInfoList) {
+                    if (testInfo.uuid.equals(id, ignoreCase = true)) {
+                        return testInfo
                     }
                 }
             }
-        } catch (JsonSyntaxException e) {
+        } catch (e: JsonSyntaxException) {
             // do nothing
         }
-
-        return null;
+        return null
     }
+
 }
