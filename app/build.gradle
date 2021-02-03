@@ -17,7 +17,7 @@ android {
         applicationId "io.ffem.reports"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 7
+        versionCode 8
         versionName "1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -87,7 +87,6 @@ dependencies {
     // Support
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     // Timber
@@ -117,7 +116,6 @@ dependencies {
 
     // Robolectric
     testImplementation 'org.robolectric:robolectric:4.4'
-    testImplementation "org.robolectric:shadows-support-v4:3.4-rc2"
 
     // UIAutomator
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'

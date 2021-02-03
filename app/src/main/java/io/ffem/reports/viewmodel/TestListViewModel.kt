@@ -21,12 +21,9 @@ import io.ffem.reports.model.TestInfo
 import io.ffem.reports.repository.TestConfigRepository
 
 class TestListViewModel(application: Application) : AndroidViewModel(application) {
-    private val testConfigRepository: TestConfigRepository
+    private val testConfigRepository: TestConfigRepository = TestConfigRepository(application)
     fun getTestInfo(uuid: String?): TestInfo? {
         return testConfigRepository.getTestInfo(uuid!!)
     }
 
-    init {
-        testConfigRepository = TestConfigRepository(application)
-    }
 }

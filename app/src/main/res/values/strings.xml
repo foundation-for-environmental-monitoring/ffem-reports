@@ -19,7 +19,6 @@
     <string name="go_to_play_store">Go to Play store</string>
 
     <string name="go_to_external_app">Launch ffem Collect</string>
-    <string name="close">Close</string>
 
     <!--About Screen-->
     <string name="copyrightMessage">Copyright © ffem</string>
@@ -51,11 +50,6 @@
     <string name="phosphorus">Phosphorus</string>
     <string name="potassium">Potassium</string>
 
-    <string name="lake">Lake</string>
-    <string name="location">Location</string>
-    <string name="dissolvedOxygen">Dissolved Oxygen</string>
-    <string name="nitrate">Nitrate</string>
-    <string name="phosphate">Phosphate</string>
     <string name="pH">pH</string>
     <string name="no_data_connection">No data connection. Please connect to the internet and try again.</string>
     <string name="error_values_not_filled">All farmer and crop details should be filled before requesting a recommendation.</string>
