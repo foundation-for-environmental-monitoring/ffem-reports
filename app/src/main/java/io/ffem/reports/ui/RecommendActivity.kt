@@ -50,6 +50,12 @@ import io.ffem.reports.viewmodel.TestListViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
+import org.xmlpull.v1.XmlPullParserFactory
+import timber.log.Timber
+import java.io.IOException
+import java.io.StringReader
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -79,10 +85,12 @@ class RecommendActivity : BaseActivity() {
             title = "Fertilizer Recommendation"
             recommendationFragment = RecommendationFragment.newInstance()
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, recommendationFragment!!,
-                            RecommendationFragment::class.java.simpleName).commit()
+                .add(
+                    R.id.fragment_container, recommendationFragment!!,
+                    RecommendationFragment::class.java.simpleName
+                ).commit()
             printTemplate = getInstance(this)!!
-                    .loadJsonFromAsset("templates/recommendation_template.html")
+                .loadJsonFromAsset("templates/recommendation_template.html")
             recommendation
         }
     }
@@ -112,12 +120,14 @@ class RecommendActivity : BaseActivity() {
         uuid = intent.getStringExtra(SensorConstants.TEST_ID)
         if (uuid != null) {
             val viewModel = ViewModelProvider(this).get(
-                    TestListViewModel::class.java
+                TestListViewModel::class.java
             )
             testInfo = viewModel.getTestInfo(uuid)
             if (testInfo != null && intent.extras != null) {
                 for (i in intent.extras!!.keySet().indices) {
-                    val code = Objects.requireNonNull<Array<Any>>(intent.extras!!.keySet().toTypedArray())[i].toString()
+                    val code = Objects.requireNonNull<Array<Any>>(
+                        intent.extras!!.keySet().toTypedArray()
+                    )[i].toString()
                     if (code != SensorConstants.TEST_ID && !code.contains("__")) {
                         val pattern = Pattern.compile("_(\\d*?)$")
                         val matcher = pattern.matcher(code)
@@ -220,24 +230,28 @@ class RecommendActivity : BaseActivity() {
      */
     private fun alertTestTypeNotSupported() {
         var message = getString(R.string.errorTestNotAvailable)
-        message = String.format(MESSAGE_TWO_LINE_FORMAT, message, getString(R.string.pleaseContactSupport))
+        message = String.format(
+            MESSAGE_TWO_LINE_FORMAT,
+            message,
+            getString(R.string.pleaseContactSupport)
+        )
         showAlert(this, R.string.cannotStartTest, message,
-                R.string.ok,
-                { dialogInterface: DialogInterface, _: Int ->
-                    dialogInterface.dismiss()
-                    finish()
-                }, null,
-                { dialogInterface: DialogInterface ->
-                    dialogInterface.dismiss()
-                    finish()
-                }
+            R.string.ok,
+            { dialogInterface: DialogInterface, _: Int ->
+                dialogInterface.dismiss()
+                finish()
+            }, null,
+            { dialogInterface: DialogInterface ->
+                dialogInterface.dismiss()
+                finish()
+            }
         )
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private fun createWebPrintJob(webView: WebView) {
         val printManager = this
-                .getSystemService(PRINT_SERVICE) as PrintManager
+            .getSystemService(PRINT_SERVICE) as PrintManager
         val jobName = "Fertilizer Recommendation - $date"
         val printAdapter = webView.createPrintDocumentAdapter(jobName)
 
@@ -259,6 +273,7 @@ class RecommendActivity : BaseActivity() {
             pd.show()
             val webView = WebView(this)
             webView.settings.javaScriptEnabled = true
+            parseXml(intent.getStringExtra("survey_data"), intent)
             val state = getStringExtra("State")
             val district = getStringExtra("District")
             val cropGroup = getStringExtra("Crop_Group")
@@ -272,9 +287,12 @@ class RecommendActivity : BaseActivity() {
             val varietyCode = intent.getStringExtra("Variety")
             val seasonCode = intent.getStringExtra("Season")
             if (recommendationInfo.farmerName!!.isEmpty() || recommendationInfo.sampleNumber!!.isEmpty() ||
-                    state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()) {
-                Toast.makeText(this, R.string.error_values_not_filled,
-                        Toast.LENGTH_LONG).show()
+                state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()
+            ) {
+                Toast.makeText(
+                    this, R.string.error_values_not_filled,
+                    Toast.LENGTH_LONG
+                ).show()
                 pd.dismiss()
                 finish()
                 return
@@ -288,47 +306,51 @@ class RecommendActivity : BaseActivity() {
 //        recommendationInfo.phosphorusResult = "1";
 //        recommendationInfo.potassiumResult = "1";
             if (recommendationInfo.nitrogenResult!!.isEmpty() || recommendationInfo.phosphorusResult!!.isEmpty() ||
-                    recommendationInfo.potassiumResult!!.isEmpty()) {
-                Toast.makeText(this,
-                        "All tests have to be completed before requesting a recommendation",
-                        Toast.LENGTH_LONG).show()
+                recommendationInfo.potassiumResult!!.isEmpty()
+            ) {
+                Toast.makeText(
+                    this,
+                    "All tests have to be completed before requesting a recommendation",
+                    Toast.LENGTH_LONG
+                ).show()
                 pd.dismiss()
                 finish()
                 return
             }
-            val js = "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
-                    "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
-                    "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
-                    "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
-                    "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
-                    "document.getElementsByClassName('myButton')[0].click();" +
-                    "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
-                    "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
-                    "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
-                    "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
-                    "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
-                    "javascript:document.getElementById('AddCrop').click();" +
-                    "(function() { " +
-                    "return " +
-                    "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
-                    "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
-                    "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
-                    "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
-                    "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
-                    "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
-                    "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
-                    "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
-                    "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
-                    "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
-                    "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
-                    "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
-                    "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
-                    "})();"
+            val js =
+                "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
+                        "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
+                        "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
+                        "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
+                        "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
+                        "document.getElementsByClassName('myButton')[0].click();" +
+                        "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
+                        "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
+                        "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
+                        "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
+                        "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
+                        "javascript:document.getElementById('AddCrop').click();" +
+                        "(function() { " +
+                        "return " +
+                        "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
+                        "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
+                        "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
+                        "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
+                        "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
+                        "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
+                        "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
+                        "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
+                        "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
+                        "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
+                        "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
+                        "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
+                        "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
+                        "})();"
             val run = Runnable {
                 if (timeout) {
                     pd.dismiss()
@@ -345,11 +367,18 @@ class RecommendActivity : BaseActivity() {
                     super.onPageStarted(view, url, favicon)
                 }
 
-                override fun onReceivedError(view: WebView, errorCode: Int, description: String, failingUrl: String) {
+                override fun onReceivedError(
+                    view: WebView,
+                    errorCode: Int,
+                    description: String,
+                    failingUrl: String
+                ) {
                     if (description.contains("ERR_INTERNET")) {
-                        Toast.makeText(activity,
-                                getString(R.string.no_data_connection),
-                                Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            activity,
+                            getString(R.string.no_data_connection),
+                            Toast.LENGTH_LONG
+                        ).show()
                     } else {
                         Toast.makeText(activity, description, Toast.LENGTH_SHORT).show()
                     }
@@ -358,7 +387,11 @@ class RecommendActivity : BaseActivity() {
                     finish()
                 }
 
-                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
                     super.onReceivedError(view, request, error)
                 }
 
@@ -392,13 +425,19 @@ class RecommendActivity : BaseActivity() {
         }
 
     private fun returnEmptyResult(pd: ProgressDialog) {
-        Toast.makeText(activity, "Could not calculate recommendation. Please check all entries", Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            activity,
+            "Could not calculate recommendation. Please check all entries",
+            Toast.LENGTH_LONG
+        ).show()
         val resultIntent = Intent()
         val results = SparseArray<String>()
         for (i in testInfo!!.results!!.indices) {
             val result = testInfo!!.results!![i]
-            resultIntent.putExtra(result.name!!.replace(" ", "_")
-                    + testInfo!!.resultSuffix, "")
+            resultIntent.putExtra(
+                result.name!!.replace(" ", "_")
+                        + testInfo!!.resultSuffix, ""
+            )
             results.append(result.id, "")
         }
         setResult(RESULT_OK, resultIntent)
@@ -422,8 +461,10 @@ class RecommendActivity : BaseActivity() {
         var value = 0.0
         for (i in testInfo!!.results!!.indices) {
             val result = testInfo!!.results!![i]
-            resultIntent.putExtra(result.name!!.trim { it <= ' ' }.replace(" ", "_")
-                    + testInfo!!.resultSuffix, values[i + startIndex])
+            resultIntent.putExtra(
+                result.name!!.trim { it <= ' ' }.replace(" ", "_")
+                        + testInfo!!.resultSuffix, values[i + startIndex]
+            )
             results.append(result.id, result.result)
             if (i and 1 != 0) {
                 try {
@@ -463,12 +504,15 @@ class RecommendActivity : BaseActivity() {
             val geoValues = recommendationInfo.geoLocation!!.split(" ".toRegex()).toTypedArray()
             for (i in geoValues.indices) {
                 // Also show unit (m) for last two values
-                printTemplate = printTemplate!!.replace("#Geo$i#",
-                        if (i > 1) geoValues[i] + "m" else geoValues[i])
+                printTemplate = printTemplate!!.replace(
+                    "#Geo$i#",
+                    if (i > 1) geoValues[i] + "m" else geoValues[i]
+                )
             }
         }
         printTemplate = printTemplate!!.replace("#Nitrogen#", recommendationInfo.nitrogenResult!!)
-        printTemplate = printTemplate!!.replace("#Phosphorus#", recommendationInfo.phosphorusResult!!)
+        printTemplate =
+            printTemplate!!.replace("#Phosphorus#", recommendationInfo.phosphorusResult!!)
         printTemplate = printTemplate!!.replace("#Potassium#", recommendationInfo.potassiumResult!!)
         printTemplate = printTemplate!!.replace("#pH#", recommendationInfo.pH!!)
         printTemplate = printTemplate!!.replace("#.*?#".toRegex(), "")
@@ -485,8 +529,10 @@ class RecommendActivity : BaseActivity() {
                 createWebPrintJob(view)
             }
         }
-        printWebView.loadDataWithBaseURL("file:///android_asset/images/", printTemplate!!,
-                "text/HTML", "UTF-8", null)
+        printWebView.loadDataWithBaseURL(
+            "file:///android_asset/images/", printTemplate!!,
+            "text/HTML", "UTF-8", null
+        )
     }
 
     fun onSaveClick(@Suppress("UNUSED_PARAMETER") view: View?) {
@@ -499,6 +545,33 @@ class RecommendActivity : BaseActivity() {
 
     private fun getStringExtra(key: String, defaultValue: String): String {
         return intent.getStringExtra(key) ?: return defaultValue
+    }
+
+    private fun parseXml(xmlString: String?, intent: Intent) {
+        try {
+            val factory = XmlPullParserFactory.newInstance()
+            factory.isNamespaceAware = true
+            val xpp = factory.newPullParser()
+            xpp.setInput(StringReader(xmlString))
+            var eventType = xpp.eventType
+            var text = ""
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.TEXT) {
+                    text = xpp.text
+                } else if (eventType == XmlPullParser.END_TAG) {
+                    if (!xpp.name.contains("__") && !xpp.name.contains("instanceID") && text.isNotEmpty()) {
+                        intent.putExtra(xpp.name, text)
+                        Timber.e("%s : %s", xpp.name, text)
+                        text = ""
+                    }
+                }
+                eventType = xpp.next()
+            }
+        } catch (e: XmlPullParserException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     companion object {

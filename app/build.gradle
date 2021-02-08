@@ -17,8 +17,8 @@ android {
         applicationId "io.ffem.reports"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 8
-        versionName "1.4"
+        versionCode 9
+        versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
