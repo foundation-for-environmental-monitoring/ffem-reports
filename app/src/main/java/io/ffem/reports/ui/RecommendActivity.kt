@@ -268,27 +268,159 @@ class RecommendActivity : BaseActivity() {
     private val recommendation: Unit
         get() {
             val pd = ProgressDialog(this)
-            pd.setMessage(getString(R.string.just_a_moment))
-            pd.setCancelable(false)
-            pd.show()
-            val webView = WebView(this)
-            webView.settings.javaScriptEnabled = true
-            parseXml(intent.getStringExtra("survey_data"), intent)
-            val state = getStringExtra("State")
-            val district = getStringExtra("District")
-            val cropGroup = getStringExtra("Crop_Group")
-            recommendationInfo.farmerName = getStringExtra("Farmer_name")
-            recommendationInfo.phoneNumber = getStringExtra("Phone_number")
-            recommendationInfo.sampleNumber = getStringExtra("Sample_number")
-            recommendationInfo.villageName = getStringExtra("Village_name")
-            recommendationInfo.geoLocation = getStringExtra("Geolocation")
-            val crop = intent.getStringExtra("Crop")
-            val soilType = intent.getStringExtra("Soil_Type")
-            val varietyCode = intent.getStringExtra("Variety")
-            val seasonCode = intent.getStringExtra("Season")
-            if (recommendationInfo.farmerName!!.isEmpty() || recommendationInfo.sampleNumber!!.isEmpty() ||
-                state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()
-            ) {
+            try {
+                pd.setMessage(getString(R.string.just_a_moment))
+                pd.setCancelable(false)
+                pd.show()
+                val webView = WebView(this)
+                webView.settings.javaScriptEnabled = true
+                parseXml(intent.getStringExtra("survey-data-xml"), intent)
+                val state = getStringExtra("State")
+                val district = getStringExtra("District")
+                val cropGroup = getStringExtra("Crop_Group")
+                recommendationInfo.farmerName = getStringExtra("Farmer_name")
+                recommendationInfo.phoneNumber = getStringExtra("Phone_number")
+                recommendationInfo.sampleNumber = getStringExtra("Sample_number")
+                recommendationInfo.villageName = getStringExtra("Village_name")
+                recommendationInfo.geoLocation = getStringExtra("Geolocation")
+                val crop = intent.getStringExtra("Crop")
+                val soilType = intent.getStringExtra("Soil_Type")
+                val varietyCode = intent.getStringExtra("Variety")
+                val seasonCode = intent.getStringExtra("Season")
+                if (recommendationInfo.farmerName!!.isEmpty() || recommendationInfo.sampleNumber!!.isEmpty() ||
+                    state.isEmpty() || district.isEmpty() || cropGroup.isEmpty() || crop!!.isEmpty()
+                ) {
+                    Toast.makeText(
+                        this, R.string.error_values_not_filled,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    pd.dismiss()
+                    finish()
+                    return
+                }
+                recommendationInfo.nitrogenResult = getStringExtra("Available_Nitrogen", "")
+                recommendationInfo.phosphorusResult = getStringExtra("Available_Phosphorous", "")
+                recommendationInfo.potassiumResult = getStringExtra("Available_Potassium", "")
+                recommendationInfo.pH = getStringExtra("pH", "")
+
+                if (recommendationInfo.nitrogenResult!!.isEmpty() || recommendationInfo.phosphorusResult!!.isEmpty() ||
+                    recommendationInfo.potassiumResult!!.isEmpty()
+                ) {
+                    Toast.makeText(
+                        this,
+                        "All tests have to be completed before requesting a recommendation",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    pd.dismiss()
+                    finish()
+                    return
+                }
+                val js =
+                    "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
+                            "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
+                            "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
+                            "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
+                            "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
+                            "document.getElementsByClassName('myButton')[0].click();" +
+                            "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
+                            "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
+                            "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
+                            "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
+                            "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
+                            "javascript:document.getElementById('AddCrop').click();" +
+                            "(function() { " +
+                            "return " +
+                            "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
+                            "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
+                            "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
+                            "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
+                            "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
+                            "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
+                            "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
+                            "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
+                            "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
+                            "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
+                            "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
+                            "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
+                            "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
+                            "})();"
+                val run = Runnable {
+                    if (timeout) {
+                        pd.dismiss()
+                        webView.stopLoading()
+                        finish()
+                        Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                val myHandler = Handler(Looper.myLooper()!!)
+                myHandler.postDelayed(run, 20000)
+                webView.webViewClient = object : WebViewClient() {
+
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                    }
+
+                    override fun onReceivedError(
+                        view: WebView,
+                        errorCode: Int,
+                        description: String,
+                        failingUrl: String
+                    ) {
+                        if (description.contains("ERR_INTERNET")) {
+                            Toast.makeText(
+                                activity,
+                                getString(R.string.no_data_connection),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            Toast.makeText(activity, description, Toast.LENGTH_SHORT).show()
+                        }
+                        timeout = false
+                        pd.dismiss()
+                        finish()
+                    }
+
+                    override fun onReceivedError(
+                        view: WebView?,
+                        request: WebResourceRequest?,
+                        error: WebResourceError?
+                    ) {
+                        super.onReceivedError(view, request, error)
+                    }
+
+                    //                @TargetApi(Build.VERSION_CODES.M)
+                    //                override fun onReceivedError(view: WebView, req: WebResourceRequest, error: WebResourceError) {
+                    //                    // Redirect to deprecated method, so you can use it in all SDK versions
+                    //                    onReceivedError(view, error.errorCode, error.description.toString(), req.url.toString())
+                    //                }
+
+                    override fun onPageFinished(view: WebView, url: String) {
+                        view.evaluateJavascript(js) { s: String ->
+                            val values = s.replace("\"", "").split(",".toRegex()).toTypedArray()
+                            if (values.size > 10) {
+                                timeout = false
+                                if (s.contains("NaN")) {
+                                    returnEmptyResult(pd)
+                                } else {
+                                    if (!displayResult(values)) {
+                                        returnEmptyResult(pd)
+                                    }
+                                }
+                            }
+                            GlobalScope.launch {
+                                delay(5000)
+                                pd.dismiss()
+                            }
+                        }
+                    }
+                }
+                webView.loadUrl(url)
+            } catch (e: Exception) {
                 Toast.makeText(
                     this, R.string.error_values_not_filled,
                     Toast.LENGTH_LONG
@@ -297,131 +429,6 @@ class RecommendActivity : BaseActivity() {
                 finish()
                 return
             }
-            recommendationInfo.nitrogenResult = getStringExtra("Available_Nitrogen", "")
-            recommendationInfo.phosphorusResult = getStringExtra("Available_Phosphorous", "")
-            recommendationInfo.potassiumResult = getStringExtra("Available_Potassium", "")
-            recommendationInfo.pH = getStringExtra("pH", "")
-
-//        recommendationInfo.nitrogenResult = "1";
-//        recommendationInfo.phosphorusResult = "1";
-//        recommendationInfo.potassiumResult = "1";
-            if (recommendationInfo.nitrogenResult!!.isEmpty() || recommendationInfo.phosphorusResult!!.isEmpty() ||
-                recommendationInfo.potassiumResult!!.isEmpty()
-            ) {
-                Toast.makeText(
-                    this,
-                    "All tests have to be completed before requesting a recommendation",
-                    Toast.LENGTH_LONG
-                ).show()
-                pd.dismiss()
-                finish()
-                return
-            }
-            val js =
-                "javascript:document.getElementById('State_Code').value='" + state + "';StateChange();" +
-                        "javascript:document.getElementById('District_CodeDDL').value='" + district + "';DistrictChange('" + district + "');" +
-                        "javascript:document.getElementById('N').value='" + recommendationInfo.nitrogenResult + "';" +
-                        "javascript:document.getElementById('P').value='" + recommendationInfo.phosphorusResult + "';" +
-                        "javascript:document.getElementById('K').value='" + recommendationInfo.potassiumResult + "';" +
-                        "document.getElementsByClassName('myButton')[0].click();" +
-                        "javascript:document.getElementById('Group_Code').value='" + cropGroup + "';Crop(" + cropGroup + ");" +
-                        "javascript:document.getElementById('Crop_Code').value='" + crop + "';Variety(" + crop + ");" +
-                        "javascript:document.getElementById('Soil_type_code').value='" + soilType + "';GetDistinctValues(" + soilType + ");" +
-                        "javascript:document.getElementById('Variety_Code').value='" + varietyCode + "';GetDistinctValues(" + varietyCode + ");" +
-                        "javascript:document.getElementById('Season_Code').value='" + seasonCode + "';GetDistinctValues(" + seasonCode + ");" +
-                        "javascript:document.getElementById('AddCrop').click();" +
-                        "(function() { " +
-                        "return " +
-                        "document.getElementById('State_Code').options[document.getElementById('State_Code').selectedIndex].text + ',' +" +
-                        "document.getElementById('District_CodeDDL').options[document.getElementById('District_CodeDDL').selectedIndex].text + ',' +" +
-                        "document.getElementById('Crop_Code').options[document.getElementById('Crop_Code').selectedIndex].text + ',' +" +
-                        "document.getElementById('Soil_type_code').options[document.getElementById('Soil_type_code').selectedIndex].text + ',' +" +
-                        "document.getElementById('Variety_Code').options[document.getElementById('Variety_Code').selectedIndex].text + ',' +" +
-                        "document.getElementById('Season_Code').options[document.getElementById('Season_Code').selectedIndex].text + ',' +" +
-                        "document.getElementById('C1F1').options[document.getElementById('C1F1').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb1_Fert1_Rec_dose1').value + ',' +" +
-                        "document.getElementById('C1F2').options[document.getElementById('C1F2').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb1_Fert2_Rec_dose1').value + ',' +" +
-                        "document.getElementById('C1F3').options[document.getElementById('C1F3').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb1_Fert3_Rec_dose1').value + ',' +" +
-                        "document.getElementById('C2F1').options[document.getElementById('C2F1').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb2_Fert1_Rec_dose1').value + ',' +" +
-                        "document.getElementById('C2F2').options[document.getElementById('C2F2').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb2_Fert2_Rec_dose1').value + ',' +" +
-                        "document.getElementById('C2F3').options[document.getElementById('C2F3').selectedIndex].text + ',' +" +
-                        "document.getElementById('Comb2_Fert3_Rec_dose1').value;" +
-                        "})();"
-            val run = Runnable {
-                if (timeout) {
-                    pd.dismiss()
-                    webView.stopLoading()
-                    finish()
-                    Toast.makeText(activity, "Connection Timed out", Toast.LENGTH_SHORT).show()
-                }
-            }
-            val myHandler = Handler(Looper.myLooper()!!)
-            myHandler.postDelayed(run, 20000)
-            webView.webViewClient = object : WebViewClient() {
-
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    super.onPageStarted(view, url, favicon)
-                }
-
-                override fun onReceivedError(
-                    view: WebView,
-                    errorCode: Int,
-                    description: String,
-                    failingUrl: String
-                ) {
-                    if (description.contains("ERR_INTERNET")) {
-                        Toast.makeText(
-                            activity,
-                            getString(R.string.no_data_connection),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(activity, description, Toast.LENGTH_SHORT).show()
-                    }
-                    timeout = false
-                    pd.dismiss()
-                    finish()
-                }
-
-                override fun onReceivedError(
-                    view: WebView?,
-                    request: WebResourceRequest?,
-                    error: WebResourceError?
-                ) {
-                    super.onReceivedError(view, request, error)
-                }
-
-//                @TargetApi(Build.VERSION_CODES.M)
-//                override fun onReceivedError(view: WebView, req: WebResourceRequest, error: WebResourceError) {
-//                    // Redirect to deprecated method, so you can use it in all SDK versions
-//                    onReceivedError(view, error.errorCode, error.description.toString(), req.url.toString())
-//                }
-
-                override fun onPageFinished(view: WebView, url: String) {
-                    view.evaluateJavascript(js) { s: String ->
-                        val values = s.replace("\"", "").split(",".toRegex()).toTypedArray()
-                        if (values.size > 10) {
-                            timeout = false
-                            if (s.contains("NaN")) {
-                                returnEmptyResult(pd)
-                            } else {
-                                if (!displayResult(values)) {
-                                    returnEmptyResult(pd)
-                                }
-                            }
-                        }
-                        GlobalScope.launch {
-                            delay(5000)
-                            pd.dismiss()
-                        }
-                    }
-                }
-            }
-            webView.loadUrl(url)
         }
 
     private fun returnEmptyResult(pd: ProgressDialog) {
